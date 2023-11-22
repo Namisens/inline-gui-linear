@@ -72,3 +72,12 @@ CMakeLists.txt.user*
 *.dll
 *.exe
 
+# Pycharm generated
+.idea
+
+#Qt6 generated
+UIV1.pyproject.user
+
+#Virtual Environment generated
+venv
+.venv
