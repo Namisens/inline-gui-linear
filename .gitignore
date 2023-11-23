@@ -78,6 +78,12 @@ CMakeLists.txt.user*
 #Qt6 generated
 UIV1.pyproject.user
 
+.ropeproject
+pimotorClass.py
+
 #Virtual Environment generated
 venv
 .venv
+
+#Trial files
+trial.py

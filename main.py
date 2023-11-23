@@ -1,9 +1,9 @@
 import sys
-from PyQt6 import QtWidgets, uic
+from PyQt6 import QtWidgets
 from ui import MainWindow
 
 app = QtWidgets.QApplication(sys.argv)
-MainWindow = QtWidgets.QMainWindow()
+# MainWindow = QtWidgets.QMainWindow()
 ui = MainWindow()
 ui.setupUi(MainWindow)
 MainWindow.show()
