@@ -88,3 +88,4 @@ venv
 #Trial files
 trial.py
 pimotorClass.py
+posReadings.csv
