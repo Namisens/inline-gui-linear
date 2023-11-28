@@ -643,42 +643,46 @@ class Ui_MainWindow(QMainWindow):
     @pyqtSlot()
     def _sweep(self):
         self.__setSpeed()
-        self.minValue = float(self.minAxis.text())
-        self.maxValue = float(self.maxAxis.text())
-        self.haltTimeValue = float(self.haltTime.text())
-        self.posReadingDict = {'N': [], 'MinPositionReading': [], 'MaxPositionReading': []}
+        if self.minAxis.text() is None or self.maxAxis.text() is None or self.haltTime.text() is None:
+            return self.statusBar.showMessage('Please enter min, max and halt time', 4000)
 
-        self.statusBar.showMessage('Sweeping...', 2000)
-        for i in range(int(self.nSweep.text())):
-            sleep(0.5)
+        else:
+            self.minValue = float(self.minAxis.text())
+            self.maxValue = float(self.maxAxis.text())
+            self.haltTimeValue = float(self.haltTime.text())
+            self.posReadingDict = {'N': [], 'MinPositionReading': [], 'MaxPositionReading': []}
 
-            self.posReadingDict['N'].append(i + 1)
-            # Start moving to the minimum position
-            PILogger.info('Starting {} sweep: {}'.format(i + 1, self.minValue, timeout=3))
-            self.statusBar.showMessage('Moving to minimum position: {}'.format(self.minValue, timeout=3000))
-            self.piDevice.MOV('1', self.minValue)
-            pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
-            PILogger.info('Moved to min position: {}'.format(self.__getPosition()))
-            sleep(0.5)
-            PILogger.info("Writing minimum position readings")
-            self.posReadingDict['MinPositionReading'].append(self.piDevice.qPOS('1')['1'])
-            sleep(0.5)
-            # Document minimum position readings
+            self.statusBar.showMessage('Sweeping...', 2000)
+            for i in range(int(self.nSweep.text())):
+                sleep(0.5)
 
-            # Start moving to the maximum position
-            PILogger.info("Moving to maximum position: {}".format(self.maxValue))
-            self.piDevice.MOV('1', self.maxValue)
-            pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
-            PILogger.info('Moved to max position: {}'.format(self.maxValue))
+                self.posReadingDict['N'].append(i + 1)
+                # Start moving to the minimum position
+                PILogger.info('Starting {} sweep: {}'.format(i + 1, self.minValue, timeout=3))
+                self.statusBar.showMessage('Moving to minimum position: {}'.format(self.minValue, timeout=3000))
+                self.piDevice.MOV('1', self.minValue)
+                pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
+                PILogger.info('Moved to min position: {}'.format(self.__getPosition()))
+                sleep(0.5)
+                PILogger.info("Writing minimum position readings")
+                self.posReadingDict['MinPositionReading'].append(self.piDevice.qPOS('1')['1'])
+                sleep(0.5)
+                # Document minimum position readings
 
-            # Document maximum position readings
-            PILogger.info("Getting maximum position readings")
-            sleep(0.5)
-            self.posReadingDict['MaxPositionReading'].append(self.piDevice.qPOS('1')['1'])
-            sleep(0.5)
+                # Start moving to the maximum position
+                PILogger.info("Moving to maximum position: {}".format(self.maxValue))
+                self.piDevice.MOV('1', self.maxValue)
+                pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
+                PILogger.info('Moved to max position: {}'.format(self.maxValue))
 
-        self.df = pd.DataFrame.from_dict(self.posReadingDict)
-        self.df.to_csv("posReadings.csv", index=False)
+                # Document maximum position readings
+                PILogger.info("Getting maximum position readings")
+                sleep(0.5)
+                self.posReadingDict['MaxPositionReading'].append(self.piDevice.qPOS('1')['1'])
+                sleep(0.5)
+
+            self.df = pd.DataFrame.from_dict(self.posReadingDict)
+            self.df.to_csv("posReadings50.csv", index=False)
 
     @pyqtSlot()
     def _go_to_origin(self):

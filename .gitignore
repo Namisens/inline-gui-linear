@@ -84,8 +84,5 @@ UIV1.pyproject.user
 #Virtual Environment generated
 venv
 .venv
+Trials
 
-#Trial files
-trial.py
-pimotorClass.py
-posReadings.csv
