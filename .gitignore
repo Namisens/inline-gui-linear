@@ -78,8 +78,8 @@ CMakeLists.txt.user*
 #Qt6 generated
 UIV1.pyproject.user
 
-.ropeproject
-
+# CSV files
+*.csv
 
 #Virtual Environment generated
 venv

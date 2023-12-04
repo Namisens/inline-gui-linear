@@ -7,14 +7,13 @@
 # import time
 import csv
 from typing import Union
-
-from PyQt6.QtWidgets import QMainWindow
+from PySide6 import  QtCore, QtGui, QtWidgets
+from PySide6.QtCore import Slot, Signal
+from PySide6.QtWidgets import QMainWindow
 from pipython import *
-# from pipython import pitools
-from signalsSlots import *
-# from pipython.pidevice.common.gcscommands_helpers import *
-from time import time, sleep
+from time import sleep
 import pandas as pd
+from pipython import pitools
 
 PILogger.setLevel(INFO)
 
@@ -32,7 +31,6 @@ class Ui_MainWindow(QMainWindow):
 
         self.connectButtonState: bool = False
         self.piDevice: Union[GCSDevice, None] = None
-        self.stepSize: Union[int, None] = None
         self.zAxisPosition: Union[float, None] = None
         self.speedValue: Union[float, None] = None
         self.stepSizeValue: Union[float, None] = None
@@ -81,6 +79,7 @@ class Ui_MainWindow(QMainWindow):
         self.connectButton = QtWidgets.QPushButton(parent=self.splitter_6)
         self.connectButton.setObjectName("connectButton")
         self.connectButton.setEnabled(True)
+        self.connectButton.setStatusTip("Press to connect to calibration device")
         self.verticalLayout.addWidget(self.splitter_6)
 
         self.gridLayout_2 = QtWidgets.QGridLayout()
@@ -105,6 +104,8 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.zaxis.sizePolicy().hasHeightForWidth())
+        self.zaxis.setStatusTip("Enter z-axis value between 0 and 300")
+        self.zaxis.setPlaceholderText("Enter z-axis value between 0 and 300")
         self.zaxis.setSizePolicy(sizePolicy)
         self.zaxis.setObjectName("zaxis")
         if self.piDevice is not None:
@@ -149,6 +150,7 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHeightForWidth(self.speed.sizePolicy().hasHeightForWidth())
         self.speed.setSizePolicy(sizePolicy)
         self.speed.setObjectName("speed")
+        self.speed.setPlaceholderText("Enter speed value between 0 and 6")
         # self.speed.textChanged.connect(self._speed_changed)
         self.gridLayout.addWidget(self.speed, 0, 1, 1, 2)
 
@@ -193,7 +195,9 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHeightForWidth(self.speed.sizePolicy().hasHeightForWidth())
         self.stepSizeEdit.setSizePolicy(sizePolicy)
         self.stepSizeEdit.setObjectName("stepSizeEdit")
+        self.stepSizeEdit.setPlaceholderText("Enter step size value")
         self.gridLayout.addWidget(self.stepSizeEdit, 0, 4, 1, 1)
+
 
         # Min axis Value Label for Sweep
         self.label_6 = QtWidgets.QLabel(parent=self.centralWidget)
@@ -215,7 +219,9 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHeightForWidth(self.speed.sizePolicy().hasHeightForWidth())
         self.minAxis.setSizePolicy(sizePolicy)
         self.minAxis.setObjectName("minAxis")
+        self.minAxis.setPlaceholderText("Enter minimum value for sweep")
         self.gridLayout.addWidget(self.minAxis, 1, 1, 1, 1)
+
 
         # Max axis value label for Sweep
         self.label_7 = QtWidgets.QLabel(parent=self.centralWidget)
@@ -238,6 +244,7 @@ class Ui_MainWindow(QMainWindow):
         self.maxAxis.setSizePolicy(sizePolicy)
         self.maxAxis.setObjectName("maxAxis")
         self.gridLayout.addWidget(self.maxAxis, 1, 3, 1, 1)
+        self.maxAxis.setPlaceholderText("Enter maximum value for sweep")
 
         # N Label
         self.label_4 = QtWidgets.QLabel(parent=self.centralWidget)
@@ -259,6 +266,7 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHeightForWidth(self.speed.sizePolicy().hasHeightForWidth())
         self.nSweep.setSizePolicy(sizePolicy)
         self.nSweep.setObjectName("speed")
+        self.nSweep.setPlaceholderText("Enter number of steps for sweep")
         self.gridLayout.addWidget(self.nSweep, 1, 5, 1, 1)
 
         # Halt Time Label
@@ -281,6 +289,7 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHeightForWidth(self.speed.sizePolicy().hasHeightForWidth())
         self.haltTime.setSizePolicy(sizePolicy)
         self.haltTime.setObjectName("haltTime")
+        self.haltTime.setPlaceholderText("Enter halt time")
         self.gridLayout.addWidget(self.haltTime, 1, 7, 1, 1)
 
         # Down Button
@@ -291,6 +300,7 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHeightForWidth(self.up.sizePolicy().hasHeightForWidth())
         self.up.setSizePolicy(sizePolicy)
         self.up.setObjectName("up")
+        self.up.setStatusTip("Press to move up")
         self.up.setEnabled(False)
         self.up.clicked.connect(self._up)
 
@@ -303,6 +313,7 @@ class Ui_MainWindow(QMainWindow):
         sizePolicy.setHeightForWidth(self.down.sizePolicy().hasHeightForWidth())
         self.down.setSizePolicy(sizePolicy)
         self.down.setObjectName("down")
+        self.down.setStatusTip("Press to move down")
         self.down.setEnabled(False)
 
         # Splitter 5
@@ -321,6 +332,7 @@ class Ui_MainWindow(QMainWindow):
         self.move.setObjectName("move")
         self.move.setEnabled(False)
         self.move.clicked.connect(self._move)
+        self.move.setStatusTip("Press to move to target")
 
         # Pause Button
         self.pause = QtWidgets.QPushButton(parent=self.splitter_5)
@@ -332,6 +344,7 @@ class Ui_MainWindow(QMainWindow):
         self.pause.setObjectName("pause")
         self.pause.setEnabled(False)
         self.pause.clicked.connect(self._pause)
+        self.pause.setStatusTip("Press to pause")
 
         # Stop Button
         self.stop = QtWidgets.QPushButton(parent=self.splitter_5)
@@ -343,6 +356,7 @@ class Ui_MainWindow(QMainWindow):
         self.stop.setObjectName("stop")
         self.stop.setEnabled(False)
         self.stop.clicked.connect(self._stop)
+        self.stop.setStatusTip("Press to stop")
 
         # Splitter 3
         self.verticalLayout.addWidget(self.splitter_5)
@@ -375,6 +389,7 @@ class Ui_MainWindow(QMainWindow):
         self.Sweep.setObjectName("Sweep")
         self.Sweep.setEnabled(False)
         self.Sweep.clicked.connect(self._sweep)
+        self.Sweep.setStatusTip("Press to sweep between minimum and maximum positions")
 
         # Go To Origin Button
         self.goToOrigin = QtWidgets.QPushButton(parent=self.splitter_3)
@@ -386,6 +401,7 @@ class Ui_MainWindow(QMainWindow):
         self.goToOrigin.setObjectName("goToOrigin")
         self.goToOrigin.setEnabled(False)
         self.goToOrigin.clicked.connect(self._go_to_origin)
+        self.goToOrigin.setStatusTip("Press to go to origin")
 
         self.verticalLayout.addWidget(self.splitter_3)
         MainWindow.setCentralWidget(self.centralWidget)
@@ -422,6 +438,7 @@ class Ui_MainWindow(QMainWindow):
         self.connectButton.clicked.connect(self._connect)
         self.connectButton.setCheckable(True)
 
+
         self.label.setText(_translate("MainWindow", "Z-Axis"))
         self.zaxis.setText(_translate("MainWindow", "Enter z-axis value between 0 and 300"))
 
@@ -437,19 +454,19 @@ class Ui_MainWindow(QMainWindow):
         self.comboBox_2.setItemText(1, _translate("MainWindow", "cm/sec"))
 
         self.label_3.setText(_translate("MainWindow", "Step Size"))
-        self.stepSizeEdit.setText(_translate("MainWindow", "Enter step size value"))
+        self.stepSizeEdit.setText(_translate("MainWindow", ""))
 
         self.label_4.setText(_translate("MainWindow", "N Sweeps"))
-        self.nSweep.setText(_translate("MainWindow", "Enter number of sweeps"))
+        self.nSweep.setText(_translate("MainWindow", ""))
 
         self.label_5.setText(_translate("MainWindow", "Halt Time"))
-        self.haltTime.setText(_translate("MainWindow", "Enter halt time value"))
+        self.haltTime.setText(_translate("MainWindow", ""))
 
         self.label_6.setText(_translate("MainWindow", "Min-sweep"))
-        self.minAxis.setText(_translate("MainWindow", "Enter minimum sweep value"))
+        self.minAxis.setText(_translate("MainWindow", ""))
 
         self.label_7.setText(_translate("MainWindow", "Max-sweep"))
-        self.maxAxis.setText(_translate("MainWindow", "Enter maximum"))
+        self.maxAxis.setText(_translate("MainWindow", ""))
 
         self.up.setText(_translate("MainWindow", "Up"))
 
@@ -469,61 +486,9 @@ class Ui_MainWindow(QMainWindow):
 
         self.actionProperties.setText(_translate("MainWindow", "Properties"))
 
-    @pyqtSlot()
+    @Slot()
     def _connect(self):
-        if not self.connectButtonState:
-            self.piDevice = GCSDevice('C-663')
-            PILogger.info('Searching for controllers...')
-            serial_number = self.piDevice.EnumerateUSB()
-            self.piDevice.ConnectUSB(serial_number[0])
-            PILogger.info('Connected: {}'.format(self.piDevice.qIDN().strip()))
-
-            PILogger.info(self.piDevice.qIDN())
-
-            PILogger.info('Initializing device...')
-            pitools.startup(self.piDevice, stages=[STAGE_NUMBER], refmodes=['FNL'])
-            PILogger.info('done!')
-            self.connectButton.setChecked(self.connectButtonState)
-            self.connectButton.setText('Connected')
-            if self.piDevice.IsConnected():
-                self.statusBar.showMessage('Connected!', 2000)
-                self.connectButtonState = True
-
-            # PI Device
-            self.piDevice = self.piDevice
-
-            # Set Initial Values
-            self.zAxisPosition = self.__getPosition()
-            self.speedValue = self.__getSpeed()
-            self.stepSizeValue = self.__getStepSize()
-            self.zaxis.setText(str(self.zAxisPosition))
-            self.speed.setText(str(self.speedValue))
-            self.stepSizeEdit.setText(str(self.stepSizeValue))
-
-            # Loggers
-            PILogger.info(f"Current Pos: {self.__getPosition()} mm")
-            PILogger.info(f"Current Velocity {self.__getSpeed()} mm/sec")
-            PILogger.info(f"Current Step Size {self.__getStepSize()} mm")
-
-            # Enable Buttons and Line editing
-            self.zaxis.setEnabled(True)
-            self.speed.setEnabled(True)
-            self.up.setEnabled(True)
-            self.down.setEnabled(True)
-            self.move.setEnabled(True)
-            self.pause.setEnabled(True)
-            self.stop.setEnabled(True)
-            self.savePosition.setEnabled(True)
-            self.Sweep.setEnabled(True)
-            self.goToOrigin.setEnabled(True)
-            self.nSweep.setEnabled(True)
-            self.stepSizeEdit.setEnabled(True)
-            self.haltTime.setEnabled(True)
-            self.minAxis.setEnabled(True)
-            self.maxAxis.setEnabled(True)
-
-        else:
-
+        if self.connectButtonState:
             # Deactivate Buttons and Line editing
             PILogger.info('Disconnecting...')
             self.piDevice.CloseConnection()
@@ -548,7 +513,61 @@ class Ui_MainWindow(QMainWindow):
             self.minAxis.setEnabled(False)
             self.maxAxis.setEnabled(False)
 
-    @pyqtSlot()
+        else:
+                self.piDevice = GCSDevice('C-663')
+                PILogger.info('Searching for controllers...')
+                serial_number = self.piDevice.EnumerateUSB()
+                if len(serial_number) == 0:
+                    self.statusBar.showMessage('No controllers found!', 2000)
+                else:
+                    self.piDevice.ConnectUSB(serial_number[0])
+                    PILogger.info('Connected: {}'.format(self.piDevice.qIDN().strip()))
+
+                    PILogger.info(self.piDevice.qIDN())
+
+                    PILogger.info('Initializing device...')
+                    pitools.startup(self.piDevice, stages=[STAGE_NUMBER], refmodes=['FNL'])
+                    PILogger.info('done!')
+                    self.connectButton.setChecked(self.connectButtonState)
+                    self.connectButton.setText('Connected')
+                    if self.piDevice.IsConnected():
+                        self.statusBar.showMessage('Connected!', 2000)
+                        self.connectButtonState = True
+
+                    # PI Device
+                    self.piDevice = self.piDevice
+
+                    # Set Initial Values
+                    self.zAxisPosition = self.__getPosition()
+                    self.speedValue = self.__getSpeed()
+                    self.stepSizeValue = self.__getStepSize()
+                    self.zaxis.setText(str(self.zAxisPosition))
+                    self.speed.setText(str(self.speedValue))
+                    self.stepSizeEdit.setText(str(self.stepSizeValue))
+
+                    # Loggers
+                    PILogger.info(f"Current Pos: {self.__getPosition()} mm")
+                    PILogger.info(f"Current Velocity {self.__getSpeed()} mm/sec")
+                    PILogger.info(f"Current Step Size {self.__getStepSize()} mm")
+
+                    # Enable Buttons and Line editing
+                    self.zaxis.setEnabled(True)
+                    self.speed.setEnabled(True)
+                    self.up.setEnabled(True)
+                    self.down.setEnabled(True)
+                    self.move.setEnabled(True)
+                    self.pause.setEnabled(True)
+                    self.stop.setEnabled(True)
+                    self.savePosition.setEnabled(True)
+                    self.Sweep.setEnabled(True)
+                    self.goToOrigin.setEnabled(True)
+                    self.nSweep.setEnabled(True)
+                    self.stepSizeEdit.setEnabled(True)
+                    self.haltTime.setEnabled(True)
+                    self.minAxis.setEnabled(True)
+                    self.maxAxis.setEnabled(True)
+
+    @Slot()
     def _move(self):
 
         try:
@@ -586,7 +605,7 @@ class Ui_MainWindow(QMainWindow):
         self.statusBar.showMessage('Paused!', 2000)
         PILogger.info('Paused')
 
-    @pyqtSlot()
+    @Slot()
     def _stop(self):
 
         self.piDevice.ConnectUSB(self.devices[0])
@@ -596,7 +615,7 @@ class Ui_MainWindow(QMainWindow):
         self.zAxisPosition = self.__getPosition()
         PILogger.info('Stopped')
 
-    @pyqtSlot()
+    @Slot()
     def _down(self):
 
         if self.speedValue is None:
@@ -636,11 +655,11 @@ class Ui_MainWindow(QMainWindow):
         self.zAxisPosition = self.__getPosition()
         self.zaxis.setText(str(self.zAxisPosition))
 
-    @pyqtSlot()
+    @Slot()
     def _savePosition(self):
         pass
 
-    @pyqtSlot()
+    @Slot()
     def _sweep(self):
         self.__setSpeed()
         if self.minAxis.text() is None or self.maxAxis.text() is None or self.haltTime.text() is None:
@@ -684,7 +703,7 @@ class Ui_MainWindow(QMainWindow):
             self.df = pd.DataFrame.from_dict(self.posReadingDict)
             self.df.to_csv("posReadings50.csv", index=False)
 
-    @pyqtSlot()
+    @Slot()
     def _go_to_origin(self):
         self.statusBar.showMessage("Moving to origin...", 2000)
         self.speedValue = float(self.speed.text())
