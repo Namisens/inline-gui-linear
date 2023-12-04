@@ -9,20 +9,19 @@
 ################################################################################
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt)
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
 from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
-                           QCursor, QFont, QFontDatabase, QGradient,
-                           QIcon, QImage, QKeySequence, QLinearGradient,
-                           QPainter, QPalette, QPixmap, QRadialGradient,
-                           QTransform)
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QDoubleSpinBox, QFrame,
-                               QGraphicsView, QGridLayout, QHBoxLayout, QLCDNumber,
-                               QLabel, QMainWindow, QMenu, QMenuBar,
-                               QPushButton, QScrollArea, QSizePolicy, QSpacerItem,
-                               QSpinBox, QStatusBar, QTabWidget, QVBoxLayout,
-                               QWidget)
-
+    QGraphicsView, QGridLayout, QHBoxLayout, QLCDNumber,
+    QLabel, QMainWindow, QMenu, QMenuBar,
+    QPushButton, QScrollArea, QSizePolicy, QSpacerItem,
+    QSpinBox, QStatusBar, QTabWidget, QVBoxLayout,
+    QWidget)
 
 class Ui_calibrationUI(object):
     def setupUi(self, calibrationUI):
@@ -45,6 +44,7 @@ class Ui_calibrationUI(object):
         self.connectButton.setObjectName(u"connectButton")
 
         self.horizontalLayout_3.addWidget(self.connectButton)
+
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_3)
 
@@ -115,7 +115,6 @@ class Ui_calibrationUI(object):
 
         self.speedSpin = QDoubleSpinBox(self.Settings)
         self.speedSpin.setObjectName(u"speedSpin")
-        self.speedSpin.setEnabled(False)
         sizePolicy2 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
@@ -129,19 +128,14 @@ class Ui_calibrationUI(object):
 
         self.zAxisSpin = QDoubleSpinBox(self.Settings)
         self.zAxisSpin.setObjectName(u"zAxisSpin")
-        self.zAxisSpin.setEnabled(False)
-        self.zAxisSpin.setMinimum(0.000000000000000)
-        self.zAxisSpin.setMaximum(300.000000000000000)
-        self.zAxisSpin.setSingleStep(0.100000000000000)
-        self.zAxisSpin.setValue(0.000000000000000)
 
         self.settingsInputsGridLayout.addWidget(self.zAxisSpin, 1, 1, 1, 2)
 
         self.stepSizeSpin = QDoubleSpinBox(self.Settings)
         self.stepSizeSpin.setObjectName(u"stepSizeSpin")
-        self.stepSizeSpin.setEnabled(False)
 
         self.settingsInputsGridLayout.addWidget(self.stepSizeSpin, 2, 1, 1, 2)
+
 
         self.verticalLayout_2.addLayout(self.settingsInputsGridLayout)
 
@@ -153,7 +147,6 @@ class Ui_calibrationUI(object):
         self.settingsTabButtonHLayout.setObjectName(u"settingsTabButtonHLayout")
         self.Up = QPushButton(self.Settings)
         self.Up.setObjectName(u"Up")
-        self.Up.setEnabled(False)
         sizePolicy3 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         sizePolicy3.setHorizontalStretch(0)
         sizePolicy3.setVerticalStretch(0)
@@ -164,7 +157,6 @@ class Ui_calibrationUI(object):
 
         self.Move = QPushButton(self.Settings)
         self.Move.setObjectName(u"Move")
-        self.Move.setEnabled(False)
         sizePolicy3.setHeightForWidth(self.Move.sizePolicy().hasHeightForWidth())
         self.Move.setSizePolicy(sizePolicy3)
 
@@ -172,11 +164,11 @@ class Ui_calibrationUI(object):
 
         self.Down = QPushButton(self.Settings)
         self.Down.setObjectName(u"Down")
-        self.Down.setEnabled(False)
         sizePolicy3.setHeightForWidth(self.Down.sizePolicy().hasHeightForWidth())
         self.Down.setSizePolicy(sizePolicy3)
 
         self.settingsTabButtonHLayout.addWidget(self.Down)
+
 
         self.verticalLayout_2.addLayout(self.settingsTabButtonHLayout)
 
@@ -197,7 +189,6 @@ class Ui_calibrationUI(object):
         self.calibartionButtonsHLayout.setObjectName(u"calibartionButtonsHLayout")
         self.sweepPushButton = QPushButton(self.Calibration)
         self.sweepPushButton.setObjectName(u"sweepPushButton")
-        self.sweepPushButton.setEnabled(False)
         sizePolicy4 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
@@ -208,11 +199,11 @@ class Ui_calibrationUI(object):
 
         self.referenceAxisPushButton = QPushButton(self.Calibration)
         self.referenceAxisPushButton.setObjectName(u"referenceAxisPushButton")
-        self.referenceAxisPushButton.setEnabled(False)
         sizePolicy4.setHeightForWidth(self.referenceAxisPushButton.sizePolicy().hasHeightForWidth())
         self.referenceAxisPushButton.setSizePolicy(sizePolicy4)
 
         self.calibartionButtonsHLayout.addWidget(self.referenceAxisPushButton)
+
 
         self.verticalLayout_3.addLayout(self.calibartionButtonsHLayout)
 
@@ -253,13 +244,13 @@ class Ui_calibrationUI(object):
 
         self.calibrationTabLabelVLazout.addWidget(self.calibrationTimeLabel_2)
 
+
         self.calibrationSwTiHLayout.addLayout(self.calibrationTabLabelVLazout)
 
         self.SpinBoxVLayout = QVBoxLayout()
         self.SpinBoxVLayout.setObjectName(u"SpinBoxVLayout")
         self.nSweepSpin = QSpinBox(self.Calibration)
         self.nSweepSpin.setObjectName(u"nSweepSpin")
-        self.nSweepSpin.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.nSweepSpin.sizePolicy().hasHeightForWidth())
         self.nSweepSpin.setSizePolicy(sizePolicy2)
 
@@ -267,7 +258,6 @@ class Ui_calibrationUI(object):
 
         self.measuringTImeSpin = QDoubleSpinBox(self.Calibration)
         self.measuringTImeSpin.setObjectName(u"measuringTImeSpin")
-        self.measuringTImeSpin.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.measuringTImeSpin.sizePolicy().hasHeightForWidth())
         self.measuringTImeSpin.setSizePolicy(sizePolicy2)
 
@@ -275,7 +265,6 @@ class Ui_calibrationUI(object):
 
         self.calibrationTimeSpin = QDoubleSpinBox(self.Calibration)
         self.calibrationTimeSpin.setObjectName(u"calibrationTimeSpin")
-        self.calibrationTimeSpin.setEnabled(False)
         sizePolicy7 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         sizePolicy7.setHorizontalStretch(0)
         sizePolicy7.setVerticalStretch(0)
@@ -283,6 +272,7 @@ class Ui_calibrationUI(object):
         self.calibrationTimeSpin.setSizePolicy(sizePolicy7)
 
         self.SpinBoxVLayout.addWidget(self.calibrationTimeSpin)
+
 
         self.calibrationSwTiHLayout.addLayout(self.SpinBoxVLayout)
 
@@ -312,7 +302,9 @@ class Ui_calibrationUI(object):
 
         self.unitsLabelVLayout.addWidget(self.calibrationTimeUnitLabel)
 
+
         self.calibrationSwTiHLayout.addLayout(self.unitsLabelVLayout)
+
 
         self.calibrationTabVLayout.addLayout(self.calibrationSwTiHLayout)
 
@@ -320,16 +312,15 @@ class Ui_calibrationUI(object):
         self.calibrationRngMstopsGridLayout.setObjectName(u"calibrationRngMstopsGridLayout")
         self.nMeasurementsHLayout = QHBoxLayout()
         self.nMeasurementsHLayout.setObjectName(u"nMeasurementsHLayout")
-        self.maxSweepLabel_3 = QLabel(self.Calibration)
-        self.maxSweepLabel_3.setObjectName(u"maxSweepLabel_3")
-        sizePolicy6.setHeightForWidth(self.maxSweepLabel_3.sizePolicy().hasHeightForWidth())
-        self.maxSweepLabel_3.setSizePolicy(sizePolicy6)
+        self.noOfMeasurementStops = QLabel(self.Calibration)
+        self.noOfMeasurementStops.setObjectName(u"noOfMeasurementStops")
+        sizePolicy6.setHeightForWidth(self.noOfMeasurementStops.sizePolicy().hasHeightForWidth())
+        self.noOfMeasurementStops.setSizePolicy(sizePolicy6)
 
-        self.nMeasurementsHLayout.addWidget(self.maxSweepLabel_3)
+        self.nMeasurementsHLayout.addWidget(self.noOfMeasurementStops)
 
         self.maxSweepSpin_3 = QDoubleSpinBox(self.Calibration)
         self.maxSweepSpin_3.setObjectName(u"maxSweepSpin_3")
-        self.maxSweepSpin_3.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.maxSweepSpin_3.sizePolicy().hasHeightForWidth())
         self.maxSweepSpin_3.setSizePolicy(sizePolicy2)
 
@@ -341,6 +332,7 @@ class Ui_calibrationUI(object):
         self.maxSweepDistanceUnitLabel_3.setSizePolicy(sizePolicy8)
 
         self.nMeasurementsHLayout.addWidget(self.maxSweepDistanceUnitLabel_3)
+
 
         self.calibrationRngMstopsGridLayout.addLayout(self.nMeasurementsHLayout, 1, 2, 1, 1)
 
@@ -356,7 +348,6 @@ class Ui_calibrationUI(object):
 
         self.maxSweepSpin = QDoubleSpinBox(self.Calibration)
         self.maxSweepSpin.setObjectName(u"maxSweepSpin")
-        self.maxSweepSpin.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.maxSweepSpin.sizePolicy().hasHeightForWidth())
         self.maxSweepSpin.setSizePolicy(sizePolicy2)
         self.maxSweepSpin.setMinimum(20.000000000000000)
@@ -371,20 +362,20 @@ class Ui_calibrationUI(object):
 
         self.mSweepHLayout.addWidget(self.maxSweepDistanceUnitLabel)
 
+
         self.calibrationRngMstopsGridLayout.addLayout(self.mSweepHLayout, 0, 0, 1, 1)
 
         self.fMeasurementHLayout = QHBoxLayout()
         self.fMeasurementHLayout.setObjectName(u"fMeasurementHLayout")
-        self.maxSweepLabel_2 = QLabel(self.Calibration)
-        self.maxSweepLabel_2.setObjectName(u"maxSweepLabel_2")
-        sizePolicy6.setHeightForWidth(self.maxSweepLabel_2.sizePolicy().hasHeightForWidth())
-        self.maxSweepLabel_2.setSizePolicy(sizePolicy6)
+        self.fMeasurementHeightLabel = QLabel(self.Calibration)
+        self.fMeasurementHeightLabel.setObjectName(u"fMeasurementHeightLabel")
+        sizePolicy6.setHeightForWidth(self.fMeasurementHeightLabel.sizePolicy().hasHeightForWidth())
+        self.fMeasurementHeightLabel.setSizePolicy(sizePolicy6)
 
-        self.fMeasurementHLayout.addWidget(self.maxSweepLabel_2)
+        self.fMeasurementHLayout.addWidget(self.fMeasurementHeightLabel)
 
         self.maxSweepSpin_2 = QDoubleSpinBox(self.Calibration)
         self.maxSweepSpin_2.setObjectName(u"maxSweepSpin_2")
-        self.maxSweepSpin_2.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.maxSweepSpin_2.sizePolicy().hasHeightForWidth())
         self.maxSweepSpin_2.setSizePolicy(sizePolicy2)
 
@@ -396,6 +387,7 @@ class Ui_calibrationUI(object):
         self.maxSweepDistanceUnitLabel_2.setSizePolicy(sizePolicy8)
 
         self.fMeasurementHLayout.addWidget(self.maxSweepDistanceUnitLabel_2)
+
 
         self.calibrationRngMstopsGridLayout.addLayout(self.fMeasurementHLayout, 0, 2, 1, 1)
 
@@ -410,7 +402,6 @@ class Ui_calibrationUI(object):
 
         self.minSweepSpin = QDoubleSpinBox(self.Calibration)
         self.minSweepSpin.setObjectName(u"minSweepSpin")
-        self.minSweepSpin.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.minSweepSpin.sizePolicy().hasHeightForWidth())
         self.minSweepSpin.setSizePolicy(sizePolicy2)
         self.minSweepSpin.setMinimum(15.000000000000000)
@@ -423,6 +414,7 @@ class Ui_calibrationUI(object):
         self.minSweepDistanceUnitLabel.setSizePolicy(sizePolicy8)
 
         self.minSweepHlayout.addWidget(self.minSweepDistanceUnitLabel)
+
 
         self.calibrationRngMstopsGridLayout.addLayout(self.minSweepHlayout, 1, 0, 1, 1)
 
@@ -440,11 +432,13 @@ class Ui_calibrationUI(object):
 
         self.calibrationRngMstopsGridLayout.addWidget(self.line_4, 1, 1, 1, 1)
 
+
         self.calibrationTabVLayout.addLayout(self.calibrationRngMstopsGridLayout)
 
         self.verticalSpacer_2 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.calibrationTabVLayout.addItem(self.verticalSpacer_2)
+
 
         self.verticalLayout_3.addLayout(self.calibrationTabVLayout)
 
@@ -452,16 +446,15 @@ class Ui_calibrationUI(object):
 
         self.verticalLayout_4.addWidget(self.Tabs)
 
-        self.pause = QPushButton(self.centralWidget)
-        self.pause.setObjectName(u"pause")
-        self.pause.setEnabled(False)
+        self.pausePushButton_2 = QPushButton(self.centralWidget)
+        self.pausePushButton_2.setObjectName(u"pausePushButton_2")
         sizePolicy9 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         sizePolicy9.setHorizontalStretch(0)
         sizePolicy9.setVerticalStretch(0)
-        sizePolicy9.setHeightForWidth(self.pause.sizePolicy().hasHeightForWidth())
-        self.pause.setSizePolicy(sizePolicy9)
+        sizePolicy9.setHeightForWidth(self.pausePushButton_2.sizePolicy().hasHeightForWidth())
+        self.pausePushButton_2.setSizePolicy(sizePolicy9)
 
-        self.verticalLayout_4.addWidget(self.pause)
+        self.verticalLayout_4.addWidget(self.pausePushButton_2)
 
         self.line = QFrame(self.centralWidget)
         self.line.setObjectName(u"line")
@@ -483,6 +476,7 @@ class Ui_calibrationUI(object):
         self.graphicsView.setSizePolicy(sizePolicy)
 
         self.horizontalLayout.addWidget(self.graphicsView)
+
 
         self.verticalLayout_4.addLayout(self.horizontalLayout)
 
@@ -506,6 +500,7 @@ class Ui_calibrationUI(object):
 
         self.bottomSweepHLayout.addWidget(self.sweepNumberLCD)
 
+
         self.verticalLayout_4.addLayout(self.bottomSweepHLayout)
 
         self.line_5 = QFrame(self.centralWidget)
@@ -517,7 +512,6 @@ class Ui_calibrationUI(object):
 
         self.viewLogCheckBox = QCheckBox(self.centralWidget)
         self.viewLogCheckBox.setObjectName(u"viewLogCheckBox")
-        self.viewLogCheckBox.setEnabled(False)
 
         self.verticalLayout_4.addWidget(self.viewLogCheckBox)
 
@@ -557,15 +551,12 @@ class Ui_calibrationUI(object):
 
         self.Tabs.setCurrentIndex(1)
 
-        QMetaObject.connectSlotsByName(calibrationUI)
 
+        QMetaObject.connectSlotsByName(calibrationUI)
     # setupUi
 
     def retranslateUi(self, calibrationUI):
         calibrationUI.setWindowTitle(QCoreApplication.translate("calibrationUI", u"Calibration UI", None))
-        # if QT_CONFIG(statustip)
-        calibrationUI.setStatusTip("")
-        # endif // QT_CONFIG(statustip)
         self.actionReference_Axis.setText(QCoreApplication.translate("calibrationUI", u"Reference Axis", None))
         self.actionReboot_System.setText(QCoreApplication.translate("calibrationUI", u"Reboot System", None))
         self.connectButton.setText(QCoreApplication.translate("calibrationUI", u"Connect", None))
@@ -575,26 +566,10 @@ class Ui_calibrationUI(object):
         self.stepSizeLabel.setText(QCoreApplication.translate("calibrationUI", u"Step-Size", None))
         self.stepSizeUnitLabel.setText(QCoreApplication.translate("calibrationUI", u"sec", None))
         self.speedUnitLabel.setText(QCoreApplication.translate("calibrationUI", u"mm/s", None))
-        # if QT_CONFIG(tooltip)
-        self.speedSpin.setToolTip("")
-        # endif // QT_CONFIG(tooltip)
-        # if QT_CONFIG(tooltip)
-        self.Up.setToolTip("")
-        # endif // QT_CONFIG(tooltip)
         self.Up.setText(QCoreApplication.translate("calibrationUI", u"Up", None))
-        # if QT_CONFIG(tooltip)
-        self.Move.setToolTip("")
-        # endif // QT_CONFIG(tooltip)
-        # if QT_CONFIG(statustip)
-        self.Move.setStatusTip("")
-        # endif // QT_CONFIG(statustip)
         self.Move.setText(QCoreApplication.translate("calibrationUI", u"Move", None))
-        # if QT_CONFIG(tooltip)
-        self.Down.setToolTip("")
-        # endif // QT_CONFIG(tooltip)
         self.Down.setText(QCoreApplication.translate("calibrationUI", u"Down", None))
-        self.Tabs.setTabText(self.Tabs.indexOf(self.Settings),
-                             QCoreApplication.translate("calibrationUI", u"Movement Settings", None))
+        self.Tabs.setTabText(self.Tabs.indexOf(self.Settings), QCoreApplication.translate("calibrationUI", u"Movement Settings", None))
         self.sweepPushButton.setText(QCoreApplication.translate("calibrationUI", u"Start Calibration", None))
         self.referenceAxisPushButton.setText(QCoreApplication.translate("calibrationUI", u"Calibrate Axis", None))
         self.nSweepsLabel.setText(QCoreApplication.translate("calibrationUI", u"N Sweeps", None))
@@ -603,22 +578,18 @@ class Ui_calibrationUI(object):
         self.nsweepUnitLabel.setText(QCoreApplication.translate("calibrationUI", u"int", None))
         self.measuringTimeUnitLabel.setText(QCoreApplication.translate("calibrationUI", u"mm", None))
         self.calibrationTimeUnitLabel.setText(QCoreApplication.translate("calibrationUI", u"mm", None))
-        self.maxSweepLabel_3.setText(QCoreApplication.translate("calibrationUI", u"No. of Measurement Stop", None))
+        self.noOfMeasurementStops.setText(QCoreApplication.translate("calibrationUI", u"No. of Measurement Stop", None))
         self.maxSweepDistanceUnitLabel_3.setText(QCoreApplication.translate("calibrationUI", u"mm", None))
         self.maxSweepLabel.setText(QCoreApplication.translate("calibrationUI", u"Max Sweep Value", None))
         self.maxSweepDistanceUnitLabel.setText(QCoreApplication.translate("calibrationUI", u"mm", None))
-        self.maxSweepLabel_2.setText(QCoreApplication.translate("calibrationUI", u"First Measurement Height", None))
+        self.fMeasurementHeightLabel.setText(QCoreApplication.translate("calibrationUI", u"First Measurement Height", None))
         self.maxSweepDistanceUnitLabel_2.setText(QCoreApplication.translate("calibrationUI", u"mm", None))
         self.minSweepLabel.setText(QCoreApplication.translate("calibrationUI", u"Min Sweep Value", None))
         self.minSweepDistanceUnitLabel.setText(QCoreApplication.translate("calibrationUI", u"mm", None))
-        self.Tabs.setTabText(self.Tabs.indexOf(self.Calibration),
-                             QCoreApplication.translate("calibrationUI", u"Calibration", None))
-        # if QT_CONFIG(tooltip)
-        self.pause.setToolTip("")
-        # endif // QT_CONFIG(tooltip)
-        self.pause.setText(QCoreApplication.translate("calibrationUI", u"Pause", None))
-        self.currentSweepNumberLabel.setText(
-            QCoreApplication.translate("calibrationUI", u"Current Calibration Run", None))
+        self.Tabs.setTabText(self.Tabs.indexOf(self.Calibration), QCoreApplication.translate("calibrationUI", u"Calibration", None))
+        self.pausePushButton_2.setText(QCoreApplication.translate("calibrationUI", u"Pause", None))
+        self.currentSweepNumberLabel.setText(QCoreApplication.translate("calibrationUI", u"Current Calibration Run", None))
         self.viewLogCheckBox.setText(QCoreApplication.translate("calibrationUI", u"View Log", None))
         self.menuMenu.setTitle(QCoreApplication.translate("calibrationUI", u"Menu", None))
     # retranslateUi
+

@@ -16,9 +16,6 @@
   <property name="windowOpacity">
    <double>1.000000000000000</double>
   </property>
-  <property name="statusTip">
-   <string extracomment="Press to move up"/>
-  </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
   </property>
@@ -158,17 +155,11 @@
           </item>
           <item row="0" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="speedSpin">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string extracomment="Add value to change  speed or change value using spin arrows"/>
             </property>
             <property name="decimals">
              <number>2</number>
@@ -182,30 +173,10 @@
            </widget>
           </item>
           <item row="1" column="1" colspan="2">
-           <widget class="QDoubleSpinBox" name="zAxisSpin">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="minimum">
-             <double>0.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>300.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.000000000000000</double>
-            </property>
-           </widget>
+           <widget class="QDoubleSpinBox" name="zAxisSpin"/>
           </item>
           <item row="2" column="1" colspan="2">
-           <widget class="QDoubleSpinBox" name="stepSizeSpin">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-           </widget>
+           <widget class="QDoubleSpinBox" name="stepSizeSpin"/>
           </item>
          </layout>
         </item>
@@ -229,17 +200,11 @@
          <layout class="QHBoxLayout" name="settingsTabButtonHLayout">
           <item>
            <widget class="QPushButton" name="Up">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string extracomment="press to move  the sensor up"/>
             </property>
             <property name="text">
              <string>Up</string>
@@ -248,20 +213,11 @@
           </item>
           <item>
            <widget class="QPushButton" name="Move">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string extracomment="Press to move the sensor position"/>
-            </property>
-            <property name="statusTip">
-             <string/>
             </property>
             <property name="text">
              <string>Move</string>
@@ -270,17 +226,11 @@
           </item>
           <item>
            <widget class="QPushButton" name="Down">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string extracomment="press to move  the sensor down"/>
             </property>
             <property name="text">
              <string>Down</string>
@@ -329,9 +279,6 @@
          <layout class="QHBoxLayout" name="calibartionButtonsHLayout">
           <item>
            <widget class="QPushButton" name="sweepPushButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -345,9 +292,6 @@
           </item>
           <item>
            <widget class="QPushButton" name="referenceAxisPushButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -428,9 +372,6 @@
              <layout class="QVBoxLayout" name="SpinBoxVLayout">
               <item>
                <widget class="QSpinBox" name="nSweepSpin">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -441,9 +382,6 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="measuringTImeSpin">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -454,9 +392,6 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="calibrationTimeSpin">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -517,7 +452,7 @@
             <item row="1" column="2">
              <layout class="QHBoxLayout" name="nMeasurementsHLayout">
               <item>
-               <widget class="QLabel" name="maxSweepLabel_3">
+               <widget class="QLabel" name="noOfMeasurementStops">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
                   <horstretch>0</horstretch>
@@ -531,9 +466,6 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="maxSweepSpin_3">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -577,9 +509,6 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="maxSweepSpin">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -612,7 +541,7 @@
             <item row="0" column="2">
              <layout class="QHBoxLayout" name="fMeasurementHLayout">
               <item>
-               <widget class="QLabel" name="maxSweepLabel_2">
+               <widget class="QLabel" name="fMeasurementHeightLabel">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
                   <horstretch>0</horstretch>
@@ -626,9 +555,6 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="maxSweepSpin_2">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -669,9 +595,6 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="minSweepSpin">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -734,18 +657,12 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pause">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
+     <widget class="QPushButton" name="pausePushButton_2">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string extracomment="Press to halt motion"/>
       </property>
       <property name="text">
        <string>Pause</string>
@@ -810,9 +727,6 @@
     </item>
     <item>
      <widget class="QCheckBox" name="viewLogCheckBox">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
       <property name="text">
        <string>View Log</string>
       </property>
