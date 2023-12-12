@@ -7,7 +7,7 @@ class calibrationUIModel(QAbstractItemModel):
     def __init__(self):
         super().__init__()
         self._connectButtonState: bool = False
-        # self._piDevice: Union[GCSDevice, None] = None
+        self._piDevice: Union[GCSDevice, None] = None
         self._zAxisPosition: Union[float, None] = None
         self._speedValue: Union[float, None] = None
         self._stepSizeValue: Union[float, None] = None
@@ -23,7 +23,7 @@ class calibrationUIModel(QAbstractItemModel):
     @zAxisPosition.setter
     def zAxisPosition(self, value):
         self.zAxisPosition = value
-        self.zAxisPosition.emit()
+        # self.zAxisPosition.emit()
 
     @property
     def speedValue(self):

@@ -1,194 +1,118 @@
 import sys
 
-from PySide6.QtGui import Qt
+from PySide6.QtCore import Slot, QThreadPool, QThread
 from PySide6.QtWidgets import QApplication, QMainWindow
-from pipython import GCSDevice
-from typing import Union
-
-from pipython.pitools import pitools
-
+from PySide6.QtGui import QGuiApplication
+from Threads.piMotorThread import PiWorker
 from models.mainModel import calibrationUIModel
 from views.mainView import Ui_calibrationUI
-from PySide6.QtCore import Slot, Signal, QThreadPool, QThread
-
-STEP_SIZE = 1.0
-CONTROLLER_NUMBER = 'C-663'
-DEFAULT_SPEED = 3.0
-DEFAULT_ZAXIS_POSITION = 150
-STAGE_NUMBER = 'M-414.32S'
-
-
-class PIThread(QThread):
-    connection_status = Signal(int)
-
-    def __init__(self):
-        super().__init__()
-        self.piDevice: Union[None, GCSDevice] = None
-
-    def run(self):
-        try:
-            self.piDevice = GCSDevice(CONTROLLER_NUMBER)
-            serial_number = self.piDevice.EnumerateUSB()
-            if len(serial_number) == 0:
-                self.connection_status.emit(0)
-            else:
-                self.piDevice = self.piDevice.ConnectUSB(serial_number[0])
-                # PILogger.info('Initializing device...')
-                pitools.startup(self.piDevice, stages=[STAGE_NUMBER], refmodes=['FNL'])
-                self.connection_status.emit(1)
-        except Exception as e:
-            print(e)
-            self.connection_status.emit(0)
-
-    def close(self):
-        self.piDevice.CloseConnection()
 
 
 class mainWindow(QMainWindow, Ui_calibrationUI):
-    def __init__(self):
-        super(mainWindow, self).__init__()
+    STEP_SIZE = 1.0
+    CONTROLLER_NUMBER = 'C-663'
+    DEFAULT_SPEED = 3.0
+    DEFAULT_ZAXIS_POSITION = 150
+    STAGE_NUMBER = 'M-414.32S'
+
+    def __init__(self, parent=None):
+        super(mainWindow, self).__init__(parent)
+        self.threadPool = QThreadPool()
+        self.piDevice = None
         self.model = calibrationUIModel()
         self.ui = Ui_calibrationUI()
         self.ui.setupUi(self)
-        self.workerThreads = []
-        self.workerThread = PIThread()
+        self.worker = None
+        self.deviceConnected = False
 
         # Signals
         self.ui.connectButton.clicked.connect(self._connect)
-        self.workerThread.connection_status.connect(self.update_progress)
+        self.ui.Down.clicked.connect(self.downClicked)
+        self.ui.Up.clicked.connect(self.upClicked)
+
+    @Slot()
+    def upClicked(self):
+
+        self.ui.zAxisSpin.setValue(self.ui.zAxisSpin.value() - self.ui.stepSizeSpin.value())
+
+    @Slot()
+    def downClicked(self):
+        self.ui.zAxisSpin.setValue(self.ui.zAxisSpin.value() + self.ui.stepSizeSpin.value())
+
+    @Slot(float)
+    def update_z_axis_position(self, value):
+        return self.ui.zAxisSpin.setValue(value)
 
     def update_progress(self, value):
         if value == 1:
-            self.ui.statusbar.showMessage(f"Connected")
+
+            # Update Connection Button Text
+            self.ui.statusbar.showMessage("Connected", 5000)
             self.ui.connectButton.setText('Disconnect')
-            self.model.connectButtonState = True
+            # print(self.piWorker.isRunning())
+
+            # Update UI Connection Status
+
+            # print("Thread status from update_progress {}".format(self.workerThread.isRunning()))
 
             # Enable Buttons and Line editing
-            self.model.connectButtonState = True
-            self.model.piDevice = True
-            self.ui.zAxisSpin.setEnabled(True)
-            self.ui.speedSpin.setEnabled(True)
-            self.ui.stepSizeSpin.setEnabled(True)
-            self.ui.sweepPushButton.setEnabled(True)
-            self.ui.referenceAxisPushButton.setEnabled(True)
-            self.ui.Up.setEnabled(True)
-            self.ui.Down.setEnabled(True)
-            self.ui.Move.setEnabled(True)
-            self.ui.pause.setEnabled(True)
-            self.ui.nSweepSpin.setEnabled(True)
-            self.ui.measuringTImeSpin.setEnabled(True)
-            self.ui.calibrationTimeSpin.setEnabled(True)
-            self.ui.maxSweepSpin.setEnabled(True)
-            self.ui.minSweepSpin.setEnabled(True)
-            self.ui.maxSweepSpin.setEnabled(True)
+
+            self.toggleButtons(True)
+            self.worker.signals.connection_status.connect(self.update_progress)
+            self.ui.zAxisSpin.valueChanged.connect(self.worker.set_z_axis_position)
+            self.ui.speedSpin.valueChanged.connect(self.worker.set_speed)
+            self.worker.signals.stepSizeValue.connect(self.ui.stepSizeSpin.setValue)
+            self.ui.Move.clicked.connect(self.worker.move)
+            self.ui.Up.clicked.connect(self.worker.moveUp)
+            self.ui.Down.clicked.connect(self.worker.moveDown)
+            self.ui.pausePushButton_2.clicked.connect(self.worker.pause)
+            self.worker.signals.zAxisPosition.connect(self.update_z_axis_position)
+            self.ui.zAxisSpin.setValue(self.worker.getPosition())
+            self.ui.speedSpin.setValue(float(self.worker.getSpeed()))
+
+        elif value == 2:
+            self.ui.statusbar.showMessage("Disconnected", 5000)
 
         else:
-            self.ui.statusbar.showMessage(f"Unable to find any controllers. Please check the connection and try again.")
+            self.ui.statusbar.showMessage(f"Unable to find any controllers. "
+                                          f"Please check the connection and try again.")
 
     @Slot()
     def _connect(self):
         if self.model.connectButtonState:
-            self.workerThread.close()
+
             self.ui.statusbar.showMessage(f"Disconnected")
             self.ui.connectButton.setText('Connect')
-            self.model.connectButtonState = False
-            self.model.piDevice = None
-            self.ui.zAxisSpin.setEnabled(False)
-            self.ui.speedSpin.setEnabled(False)
-            self.ui.Up.setEnabled(False)
-            self.ui.Down.setEnabled(False)
-            self.ui.Move.setEnabled(False)
-            self.ui.pause.setEnabled(False)
-            self.ui.nSweepSpin.setEnabled(False)
-            self.ui.measuringTImeSpin.setEnabled(False)
-            self.ui.calibrationTimeSpin.setEnabled(False)
-            self.ui.maxSweepSpin.setEnabled(False)
-            self.ui.minSweepSpin.setEnabled(False)
-            self.ui.maxSweepSpin.setEnabled(False)
-        else:
-            self.workerThread.start()
-        # if self.model.connectButtonState:
-        #     # Deactivate Buttons and Line editing
-        #     # PILogger.info('Disconnecting...')
-        #     self.model.piDevice.CloseConnection()
-        #     self.model.connectButtonState = False
-        #     self.ui.connectButton.setText('Connect')
-        #     # PILogger.info('disconnected')
-        #     self.ui.statusbar.showMessage('Disconnected!', 2000)
-        #     self.model.piDevice = None
-        #     self.ui.zAxisSpin.setEnabled(False)
-        #     self.ui.speedSpin.setEnabled(False)
-        #     self.ui.Up.setEnabled(False)
-        #     self.ui.Down.setEnabled(False)
-        #     self.ui.Move.setEnabled(False)
-        #     self.ui.pause.setEnabled(False)
-        #     self.ui.nSweepSpin.setEnabled(False)
-        #     self.ui.measuringTImeSpin.setEnabled(False)
-        #     self.ui.calibrationTimeSpin.setEnabled(False)
-        #     self.ui.maxSweepSpin.setEnabled(False)
-        #     self.ui.minSweepSpin.setEnabled(False)
-        #     self.maxSweepSpin.setEnabled(False)
-        #
-        # else:
-        #     self.model.piDevice = GCSDevice(CONTROLLER_NUMBER)
-        #     # PILogger.info('Searching for controllers...')
-        #     serial_number = self.model.piDevice.EnumerateUSB()
-        #     if len(serial_number) == 0:
-        #         self.ui.statusbar.showMessage('No controllers found!', 2000)
-        #     else:
-        #         self.model.piDevice.ConnectUSB(serial_number[0])
-        #         # PILogger.info('Connected: {}'.format(self.piDevice.qIDN().strip()))
-        #
-        #         # PILogger.info(self.piDevice.qIDN())
-        #
-        #         # PILogger.info('Initializing device...')
-        #         # pitools.startup(self.piDevice, stages=[STAGE_NUMBER], refmodes=['FNL'])
-        #         # PILogger.info('done!')
-        #         self.ui.connectButton.setChecked(self.model.connectButtonState)
-        #         self.ui.connectButton.setText('Connected')
-        #         if self.model.piDevice.IsConnected():
-        #             self.ui.statusbar.showMessage('Connected!', 2000)
-        #             self.model.connectButtonState = True
-        #
-        #         # PI Device
-        #         self.model.piDevice = self.model.piDevice
-        #
-        #         # Set Initial Values
-        #         # self.zAxisPosition = self.__getPosition()
-        #         # self.speedValue = self.__getSpeed()
-        #         # self.stepSizeValue = self.__getStepSize()
-        #         # self.zaxis.setText(str(self.zAxisPosition))
-        #         # self.speed.setText(str(self.speedValue))
-        #         # self.stepSizeEdit.setText(str(self.stepSizeValue))
-        #
-        #         # Loggers
-        #         # PILogger.info(f"Current Pos: {self.__getPosition()} mm")
-        #         # PILogger.info(f"Current Velocity {self.__getSpeed()} mm/sec")
-        #         # PILogger.info(f"Current Step Size {self.__getStepSize()} mm")
-        #
-        #         # Enable Buttons and Line editing
-        #         # self.model.piDevice.CloseConnection()
-        #         self.model.connectButtonState = True
-        #         self.model.piDevice = True
-        #         self.ui.zAxisSpin.setEnabled(True)
-        #         self.ui.speedSpin.setEnabled(True)
-        #         self.ui.stepSizeSpin.setEnabled(True)
-        #         self.ui.sweepPushButton.setEnabled(True)
-        #         self.ui.referenceAxisPushButton.setEnabled(True)
-        #         self.ui.Up.setEnabled(True)
-        #         self.ui.Down.setEnabled(True)
-        #         self.ui.Move.setEnabled(True)
-        #         self.ui.pause.setEnabled(True)
-        #         self.ui.nSweepSpin.setEnabled(True)
-        #         self.ui.measuringTImeSpin.setEnabled(True)
-        #         self.ui.calibrationTimeSpin.setEnabled(True)
-        #         self.ui.maxSweepSpin.setEnabled(True)
-        #         self.ui.minSweepSpin.setEnabled(True)
-        #         self.ui.maxSweepSpin.setEnabled(True)
+            self.toggleButtons(False)
+            self.worker.kill()
 
-    def keyPressedEvent(self, e):
-        if e.key() == Qt.Key.Key_Escape:
-            self.close()
+        else:
+
+            worker = PiWorker()
+            worker.finished.connect(worker.deleteLater)
+            worker.run()
+            self.worker = worker
+
+    def toggleButtons(self, state):
+        # Update UI Connection Status
+        self.model.connectButtonState = state
+        self.ui.zAxisSpin.setEnabled(state)
+        self.ui.speedSpin.setEnabled(state)
+        self.ui.stepSizeSpin.setEnabled(state)
+        self.ui.sweepPushButton.setEnabled(state)
+        self.ui.referenceAxisPushButton.setEnabled(state)
+        self.ui.Up.setEnabled(state)
+        self.ui.Down.setEnabled(state)
+        self.ui.Move.setEnabled(state)
+        self.ui.pausePushButton_2.setEnabled(state)
+        self.ui.nSweepSpin.setEnabled(state)
+        self.ui.measuringTImeSpin.setEnabled(state)
+        self.ui.calibrationTimeSpin.setEnabled(state)
+        self.ui.maxSweepSpin.setEnabled(state)
+        self.ui.minSweepSpin.setEnabled(state)
+        self.ui.maxSweepSpin.setEnabled(state)
+        self.ui.fMeasurementHeightSpinValue.setEnabled(state)
+        self.ui.nMeasurementStopSpinValue.setEnabled(state)
 
 
 if __name__ == "__main__":
@@ -196,23 +120,3 @@ if __name__ == "__main__":
     window = mainWindow()
     window.show()
     sys.exit(app.exec())
-
-# showSTEP_SIZE = 1.0
-# CONTROLLER_NUMBER = 'C-663'
-#
-# DEFAULT_SPEED = 3.0
-# DEFAULT_ZAXIS_POSITION = 150
-# STAGE_NUMBER = 'M-414.32S'
-#
-# # class App(QApplication):
-# #     def __init__(self, sys_argv):
-# #         super().__init__(sys_argv)
-# #         self.model = Model()
-# #         self.main_controller = MainController(self.model)
-# #         self.main_view = MainView(self.model, elf.main_controller)
-# #         self.main_view.show()
-# #
-# #
-# # if __name__ == "__main__":
-# #     app = App()
-# #     sys.exit(app.exec())
