@@ -1,8 +1,6 @@
 import sys
-
 from PySide6.QtCore import Slot, QThreadPool, QThread
 from PySide6.QtWidgets import QApplication, QMainWindow
-from PySide6.QtGui import QGuiApplication
 from Threads.piMotorThread import PiWorker
 from models.mainModel import calibrationUIModel
 from views.mainView import Ui_calibrationUI
@@ -22,21 +20,33 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
         self.model = calibrationUIModel()
         self.ui = Ui_calibrationUI()
         self.ui.setupUi(self)
-        self.worker = None
+        self.worker = PiWorker()
         self.deviceConnected = False
+        self.thread = QThread()
 
         # Signals
+        self.worker.signals.connection_status.connect(self.update_progress)
         self.ui.connectButton.clicked.connect(self._connect)
-        self.ui.Down.clicked.connect(self.downClicked)
-        self.ui.Up.clicked.connect(self.upClicked)
+        self.ui.Down.clicked.connect(self.down_clicked)
+        self.ui.Up.clicked.connect(self.up_clicked)
+        self.ui.zAxisSpin.valueChanged.connect(self.worker.set_z_axis_position)
+        self.ui.speedSpin.valueChanged.connect(self.worker.set_speed)
+        self.worker.signals.stepSizeValue.connect(self.ui.stepSizeSpin.setValue)
+        self.ui.Move.clicked.connect(self.worker.move)
+        self.ui.Up.clicked.connect(self.worker.moveUp)
+        self.ui.Down.clicked.connect(self.worker.moveDown)
+        self.ui.pausePushButton_2.clicked.connect(self.worker.pause)
+        # self.worker.signals.zAxisPosition.connect(self.update_z_axis_position)
+
+        # self.show()
 
     @Slot()
-    def upClicked(self):
+    def up_clicked(self):
 
         self.ui.zAxisSpin.setValue(self.ui.zAxisSpin.value() - self.ui.stepSizeSpin.value())
 
     @Slot()
-    def downClicked(self):
+    def down_clicked(self):
         self.ui.zAxisSpin.setValue(self.ui.zAxisSpin.value() + self.ui.stepSizeSpin.value())
 
     @Slot(float)
@@ -58,15 +68,6 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
             # Enable Buttons and Line editing
 
             self.toggleButtons(True)
-            self.worker.signals.connection_status.connect(self.update_progress)
-            self.ui.zAxisSpin.valueChanged.connect(self.worker.set_z_axis_position)
-            self.ui.speedSpin.valueChanged.connect(self.worker.set_speed)
-            self.worker.signals.stepSizeValue.connect(self.ui.stepSizeSpin.setValue)
-            self.ui.Move.clicked.connect(self.worker.move)
-            self.ui.Up.clicked.connect(self.worker.moveUp)
-            self.ui.Down.clicked.connect(self.worker.moveDown)
-            self.ui.pausePushButton_2.clicked.connect(self.worker.pause)
-            self.worker.signals.zAxisPosition.connect(self.update_z_axis_position)
             self.ui.zAxisSpin.setValue(self.worker.getPosition())
             self.ui.speedSpin.setValue(float(self.worker.getSpeed()))
 
@@ -87,11 +88,15 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
             self.worker.kill()
 
         else:
+            self.attach_worker()
+            print(self.thread.isFinished(), self.thread.isRunning())
 
-            worker = PiWorker()
-            worker.finished.connect(worker.deleteLater)
-            worker.run()
-            self.worker = worker
+    def attach_worker(self):
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.thread.start()
+        self.worker.signals.connection_status.connect(self.update_progress)
+        self.thread.finished.connect(self.thread.deleteLater)
 
     def toggleButtons(self, state):
         # Update UI Connection Status
@@ -115,8 +120,12 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
         self.ui.nMeasurementStopSpinValue.setEnabled(state)
 
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
     window = mainWindow()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

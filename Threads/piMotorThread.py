@@ -22,7 +22,7 @@ class WorkerSignals(QObject):
     stepSizeValue = Signal(float)
 
 
-class PiWorker(QThread):
+class PiWorker(QObject):
     STEP_SIZE = 1.0
     CONTROLLER_NUMBER = 'C-663'
     DEFAULT_SPEED = 3.0
@@ -84,8 +84,9 @@ class PiWorker(QThread):
 
     def getSpeed(self):
         return self.piDevice.qVEL('1')['1']
+
+    @Slot()
     def run(self):
-        QApplication.processEvents()
         self.connectDevice()
 
     @Slot(float)
@@ -118,7 +119,7 @@ class PiWorker(QThread):
         try:
 
             self.piDevice.VEL('1', self.signals.speedValue)
-            self.piDevice.MVR('1', self.signals.stepSizeValue)
+            self.piDevice.MOV('1', self.signals.zAxisPosition)
             print("Moving at position {}, at speed {}".format(self.signals.zAxisPosition, self.signals.speedValue))
             print(f"{self.getPosition()} {self.signals.zAxisPosition}")
             # self.signals.zAxisPosition.emit(self.getPosition())
@@ -144,15 +145,19 @@ class PiWorker(QThread):
             raise GCSError
 
 
-class Worker(QThread):
-    resultReady = Signal()
-
-    def __init__(self, function, *args, **kwargs):
-        super(Worker, self).__init__()
-        self.function = function
-        self.args = args
-        self.kwargs = kwargs
-
-    @Slot()
-    def run(self):
-        self.function(*self.args, **self.kwargs)
+# class Worker(QObject):
+#     super().__init__()
+#     self.signals = WorkerSignals()
+#     def connect(self):
+#         try:
+#             self.piDevice = GCSDevice(self.CONTROLLER_NUMBER)
+#             self.serial_number = self.piDevice.EnumerateUSB(self.CONTROLLER_NUMBER)[0]
+#             self.piDevice.ConnectUSB(self.serial_number)
+#             pitools.startup(self.piDevice, stages=[self.STAGE_NUMBER], refmodes=['FNL'])
+#             self.piDevice = self.piDevice
+#             self.deviceConnected = True
+#             self.signals.connection_status.emit(1)
+#
+#         except Exception as e:
+#             self.signals.connection_status.emit(0)
+#             raise e
