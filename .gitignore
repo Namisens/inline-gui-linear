@@ -78,6 +78,13 @@ CMakeLists.txt.user*
 #Qt6 generated
 UIV1.pyproject.user
 
+# CSV files
+*.csv
+
 #Virtual Environment generated
 venv
 .venv
+Trials
+ui.py
+
+/qodana.yaml
