@@ -12,6 +12,26 @@ from models.mainModel import calibrationUIModel
 
 
 class WorkerSignals(QObject):
+    """
+
+    WorkerSignals Class
+
+    This class defines the signals emitted by a worker object.
+
+    Attributes:
+    - connection_status: Signal emitted when the connection status changes.
+    - zAxisPosition: Signal emitted when the z-axis position changes.
+    - speedValue: Signal emitted when the speed value changes.
+    - minValue: Signal emitted when the minimum value changes.
+    - maxValue: Signal emitted when the maximum value changes.
+    - nSweep: Signal emitted when the number of sweeps changes.
+    - haltTime: Signal emitted when the halt time changes.
+    - stepSizeValue: Signal emitted when the step size value changes.
+    - finished: Signal emitted when the worker has finished its task.
+    - m_finished: Signal emitted when the worker has finished its sub-task.
+
+    """
+
     connection_status = Signal(int)
     zAxisPosition = Signal(float)
     speedValue = Signal(float)
@@ -25,6 +45,89 @@ class WorkerSignals(QObject):
 
 
 class PiWorker(QObject):
+    """
+    Python class: PiWorker
+
+    This class is responsible for controlling the movement of a device along the z-axis using a PI controller. It provides methods for connecting the device, setting various parameters,
+    * and executing movement commands.
+
+    Attributes:
+        STEP_SIZE (float): The step size for moving the device along the z-axis.
+        CONTROLLER_NUMBER (str): The controller number for the PI device.
+        DEFAULT_SPEED (float): The default speed for moving the device along the z-axis.
+        DEFAULT_ZAXIS_POSITION (int): The default position of the z-axis.
+        STAGE_NUMBER (str): The stage number of the PI device.
+
+    Args:
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+
+    Methods:
+
+        __init__(self, function=None, *args, **kwargs)
+            Initializes a new instance of the PiWorker class.
+
+        connectDevice(self) -> None
+            Connects the device to the PI controller.
+
+        changeState(self, state: bool) -> None
+            Changes the state of the thread.
+
+        pause(self) -> None
+            Toggles the paused state of the thread and stops the motion of the device.
+
+        kill(self) -> None
+            Kills the thread and closes the connection to the device.
+
+        getPosition(self) -> float
+            Retrieves the current position of the device along the z-axis.
+
+        getSpeed(self) -> float
+            Retrieves the current speed of the device.
+
+        run(self) -> None
+            Starts the execution of the thread.
+
+        set_z_axis_position(self, position: float) -> None
+            Sets the position of the z-axis.
+
+        set_speed(self, speed: float) -> None
+            Sets the speed of the device.
+
+        set_step_size(self, step_size: float) -> None
+            Sets the step size for moving the device along the z-axis.
+
+        set_min_sweep(self, min_value: float) -> None
+            Sets the minimum value for the sweep motion.
+
+        set_max_sweep(self, max_value: float) -> None
+            Sets the maximum value for the sweep motion.
+
+        set_n_sweep(self, n_sweep: float) -> None
+            Sets the number of times the sweep motion should be performed.
+
+        set_halt_time(self, halt_time: float) -> None
+            Sets the halt time for the sweep motion.
+
+        set_calibration_time(self, calibration_time: float) -> None
+            Sets the calibration time for position readings during the sweep motion.
+
+        move(self) -> None
+            Moves the device to the specified position with the specified speed.
+
+        moveUp(self) -> None
+            Moves the device in the positive direction along the z-axis.
+
+        moveDown(self) -> None
+            Moves the device in the negative direction along the z-axis.
+
+        pause(self) -> None
+            Toggles the paused state of the thread and stops the motion of the device.
+
+        sweep(self) -> None
+            Performs a sweep motion with the device, collecting position readings at each step.
+
+    """
     STEP_SIZE = 1.0
     CONTROLLER_NUMBER = 'C-663'
     DEFAULT_SPEED = 3.0
@@ -38,8 +141,8 @@ class PiWorker(QObject):
         self.serial_number = None
         self.piDevice: Union[GCSDevice, None] = None
         self.stepSizeValue = None
-        self.zAxisPositionValue = None
-        self.speedValue = None
+        self._zAxisPositionValue = None
+        self._speedValue = None
         self.args = args
         self.kwargs = kwargs
         self.function = function
@@ -56,9 +159,14 @@ class PiWorker(QObject):
         # Class Specific Flags
         self.isThreadRunning = False
         self.signals = WorkerSignals()
-
         self.isThreadPaused: bool = False
         self.isThreadKilled: bool = False
+
+
+    def initializeConnection(self):
+        self.deviceConnected = True
+        self.changeState(True)
+        self.signals.connection_status.emit(1)
 
     @Slot()
     def connectDevice(self):
@@ -68,9 +176,7 @@ class PiWorker(QObject):
             self.piDevice.ConnectUSB(self.serial_number)
             pitools.startup(self.piDevice, stages=[self.STAGE_NUMBER], refmodes=['FNL'])
             self.piDevice = self.piDevice
-            self.deviceConnected = True
-            self.changeState(True)
-            self.signals.connection_status.emit(1)
+            self.initializeConnection()
 
 
         except Exception as e:
@@ -82,6 +188,9 @@ class PiWorker(QObject):
 
     def pause(self):
         self.isThreadPaused = not self.isThreadPaused
+        if self.piDevice:
+            self.piDevice.STP('1')
+        self.signals.zAxisPosition.emit(self.getPosition())
 
     def kill(self):
         self.isThreadKilled = True
@@ -99,101 +208,167 @@ class PiWorker(QObject):
 
     @Slot()
     def run(self):
-        # self.mutex.lock()
         if self.piDevice is None:
             self.connectDevice()
 
-        while True:
+        while not self.isThreadKilled:
             QApplication.processEvents()
+            if self.isThreadPaused:
+                continue
+
+
             time.sleep(0.2)
-            # print("Thread is running")
-        # self.mutex.unlock()
 
 ################# Setters #################################################################################################################################
 
     @Slot(float)
     def set_z_axis_position(self, position):
-        self.zAxisPositionValue = position
+        self._zAxisPositionValue = position
 
     @Slot(float)
     def set_speed(self, speed):
-        self.speedValue = speed
+        self._speedValue = speed
 
     @Slot(float)
     def set_step_size(self, step_size):
         self.stepSizeValue = step_size
 
+    @Slot(float)
     def set_min_sweep(self, min_value):
         self.minValue = min_value
 
+    @Slot(float)
     def set_max_sweep(self, max_value):
         self.maxValue = max_value
 
+    @Slot(int)
     def set_n_sweep(self, n_sweep):
         self.nSweepValue = n_sweep
 
+    @Slot(float)
     def set_halt_time(self, halt_time):
         self.haltTimeValue = halt_time
 
+    @Slot(float)
     def set_calibration_time(self, calibration_time):
         self.calibrationTimeValue = calibration_time
 
-#########Move Functions###############################################################################################
+######### Move Functions ###############################################################################################
 
-    @Slot()
-    def move(self):
+    @Slot(float)
+    def move_to_position(self, position):
+
         try:
 
-            self.piDevice.VEL('1', self.speedValue)
-            self.piDevice.MOV('1', self.zAxisPositionValue)
-            print("Moving at position {} mm, at speed {} mm/sec".format(self.zAxisPositionValue, self.speedValue))
-            if pitools.ontarget(self.piDevice, '1'):
-                self.signals.zAxisPosition.emit(self.getPosition())
-                print("Reached target position: {}".format(self.zAxisPositionValue))
+            if position is None:
+                raise Exception("Position is None")
+
+            self.piDevice.VEL('1', self._speedValue)
+            self.piDevice.MOV('1', position)
+            print(f"Moving at position {position} mm")
+
         except Exception as e:
             self.signals.m_finished.emit(False)
             return e
-
         finally:
             self.signals.m_finished.emit(True)
 
+
+    @Slot()
+    def move(self):
+        """
+        Method: move
+        Moves the z-axis to a specified position with specified speed.
+        Parameters:
+            None
+        Returns:
+            None
+        Raises:
+            Exception: If an error occurs while attempting to move the z-axis.
+        """
+
+        try:
+            self.move_to_position(self._zAxisPositionValue)
+            while self.piDevice.IsMoving('1')['1'] == 1:
+                self.signals.zAxisPosition.emit(self.getPosition())
+        except Exception as e:
+            self.signals.m_finished.emit(False)
+            return e
+        finally:
+            self.signals.m_finished.emit(True)
+
+
+
+
     @Slot()
     def moveUp(self):
+        """
+        Method: moveUp
+
+        Moves the z-axis in the positive direction by a specified position and speed.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            Exception: If an error occurs while attempting to move the z-axis.
+
+        Example usage:
+            moveUp()
+
+        """
+        newPosition = self.getPosition() - self.stepSizeValue
+        self.mutex.lock()
         try:
-
-            self.piDevice.VEL('1', self.speedValue)
-            self.piDevice.MOV('1', self.zAxisPositionValue)
-            print("Moving at position {} mm, at speed {} mm/sec".format(self.zAxisPositionValue, self.speedValue))
-            if pitools.ontarget(self.piDevice, '1')and self.zAxisPositionValue == self.getPosition():
+            self.move_to_position(newPosition)
+            while self.piDevice.IsMoving('1')['1'] == 1:
                 self.signals.zAxisPosition.emit(self.getPosition())
-                print("Reached target position: {} mm".format(self.zAxisPositionValue))
-
-        except Exception as e:
-            raise e
+        finally:
+            self.mutex.unlock()
 
     @Slot()
     def moveDown(self):
-        self.piDevice.VEL('1', self.speedValue)
-        self.piDevice.MOV('1', self.zAxisPositionValue)
-        print("Moving at position {} mm, at speed {} mm/sec".format(self.zAxisPositionValue, self.speedValue))
+        new_position = self.getPosition() + self.stepSizeValue
+        self.mutex.lock()
+        try:
+            self.move_to_position(new_position)
+            while self.piDevice.IsMoving('1')['1'] == 1:
+                self.signals.zAxisPosition.emit(self.getPosition())
+        finally:
+            self.mutex.unlock()
 
     @Slot()
     def pause(self):
-        try:
-            self.isThreadPaused = not self.isThreadPaused
+        self.isThreadPaused = not self.isThreadPaused
+        if self.piDevice:
             self.piDevice.STP('1')
-            self.signals.zAxisPosition.emit(self.getPosition())
-        except Exception as e:
-            raise e
 
     @Slot()
     def sweep(self):
-        self.piDevice.VEL('1', self.speedValue)
+        """
+
+        This method performs a sweep motion using the piDevice. It moves the device from the minimum position to the maximum position multiple times, collecting position readings at each step
+        *. The collected position readings are then saved to a CSV file named "posReadings50.csv".
+
+        Parameters:
+
+        N/A
+
+        Returns:
+
+        N/A
+
+        """
+        self.piDevice.VEL('1', self._speedValue)
 
         for i in range(int(self.nSweepValue)):
             self.posReadingDict['N'].append(i + 1)
+
             # Start moving to the minimum position
-            self.piDevice.MOV('1', self.minValue)
+            self.move_to_position(self.minValue)
             pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
             sleep(self.calibrationTimeValue)
             self.posReadingDict['MinPositionReading'].append(self.piDevice.qPOS('1')['1'])
@@ -202,7 +377,7 @@ class PiWorker(QObject):
 
             # Start moving to the maximum position
             # PILogger.info("Moving to maximum position: {}".format(self.maxValue))
-            self.piDevice.MOV('1', self.maxValue)
+            self.move_to_position(self.maxValue)
             pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
             # PILogger.info('Moved to max position: {}'.format(self.maxValue))
 

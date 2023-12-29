@@ -542,7 +542,7 @@
             <item row="0" column="0">
              <layout class="QHBoxLayout" name="mSweepHLayout">
               <item>
-               <widget class="QLabel" name="maxSweepLabel">
+               <widget class="QLabel" name="minSweepLabel">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
                   <horstretch>0</horstretch>
@@ -550,15 +550,12 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Max Sweep Value</string>
-                </property>
-                <property name="scaledContents">
-                 <bool>false</bool>
+                 <string>Min Sweep Value</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="maxSweepSpin">
+               <widget class="QDoubleSpinBox" name="minSweepSpin">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -569,10 +566,13 @@
                  </sizepolicy>
                 </property>
                 <property name="minimum">
-                 <double>20.000000000000000</double>
+                 <double>10.000000000000000</double>
                 </property>
                 <property name="maximum">
-                 <double>300.000000000000000</double>
+                 <double>299.000000000000000</double>
+                </property>
+                <property name="value">
+                 <double>50.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -637,7 +637,7 @@
             <item row="1" column="0">
              <layout class="QHBoxLayout" name="minSweepHlayout">
               <item>
-               <widget class="QLabel" name="minSweepLabel">
+               <widget class="QLabel" name="maxSweepLabel">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
                   <horstretch>0</horstretch>
@@ -645,12 +645,15 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Min Sweep Value</string>
+                 <string>Max Sweep Value</string>
+                </property>
+                <property name="scaledContents">
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="minSweepSpin">
+               <widget class="QDoubleSpinBox" name="maxSweepSpin">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -661,7 +664,13 @@
                  </sizepolicy>
                 </property>
                 <property name="minimum">
-                 <double>15.000000000000000</double>
+                 <double>20.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>300.000000000000000</double>
+                </property>
+                <property name="value">
+                 <double>70.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -789,6 +798,9 @@
     </item>
     <item>
      <widget class="QCheckBox" name="viewLogCheckBox">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="text">
        <string>View Log</string>
       </property>
@@ -803,6 +815,9 @@
     </item>
     <item>
      <widget class="QScrollArea" name="scrollArea">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="widgetResizable">
        <bool>true</bool>
       </property>
