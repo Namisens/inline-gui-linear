@@ -783,7 +783,7 @@
       <item>
        <widget class="QLCDNumber" name="sweepNumberLCD">
         <property name="digitCount">
-         <number>1</number>
+         <number>3</number>
         </property>
        </widget>
       </item>

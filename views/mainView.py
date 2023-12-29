@@ -445,7 +445,7 @@ class Ui_calibrationUI(object):
         self.currentSweepNumberLabel.setObjectName("currentSweepNumberLabel")
         self.bottomSweepHLayout.addWidget(self.currentSweepNumberLabel)
         self.sweepNumberLCD = QtWidgets.QLCDNumber(parent=self.centralWidget)
-        self.sweepNumberLCD.setDigitCount(1)
+        self.sweepNumberLCD.setDigitCount(3)
         self.sweepNumberLCD.setObjectName("sweepNumberLCD")
         self.bottomSweepHLayout.addWidget(self.sweepNumberLCD)
         self.verticalLayout_4.addLayout(self.bottomSweepHLayout)
