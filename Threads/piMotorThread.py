@@ -1,6 +1,5 @@
 import time
 from time import sleep
-
 import pandas as pd
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QThread, QMutex, QMutexLocker
@@ -33,15 +32,16 @@ class WorkerSignals(QObject):
     """
 
     connection_status = Signal(int)
-    zAxisPosition = Signal(float)
-    speedValue = Signal(float)
+    z_axis_position = Signal(float)
+    speed_value = Signal(float)
     minValue = Signal(float)
     maxValue = Signal(float)
     nSweep = Signal(int)
     haltTime = Signal(float)
     stepSizeValue = Signal(float)
-    finished = Signal(bool)
-    m_finished = Signal(bool)
+    thread_finished = Signal(bool)
+    m_finished = Signal(int)
+    current_calibration_number = Signal(int)
 
 
 class PiWorker(QObject):
@@ -135,23 +135,27 @@ class PiWorker(QObject):
     STAGE_NUMBER = 'M-414.32S'
 
 
-    def __init__(self, function=None, *args, **kwargs):
-        super(PiWorker, self).__init__()
+    def __init__(self, n_sweep_value, n_measurements_value,step_size,
+                 measurement_time_value,min_value, max_value, f_measurement_height_value,
+                 calibration_time_value, speed_value,*args, **kwargs):
+        super(PiWorker, self, ).__init__()
 
         self.serial_number = None
         self.piDevice: Union[GCSDevice, None] = None
-        self.stepSizeValue = None
+        self.stepSizeValue = step_size
         self._zAxisPositionValue = None
-        self._speedValue = None
+        self._speedValue = speed_value
         self.args = args
         self.kwargs = kwargs
-        self.function = function
-        self.nSweepValue = None
-        self.haltTimeValue = None
-        self.minValue = None
-        self.maxValue = None
-        self.cancelTimeValue = None
-        self.deviceConnected = False
+        self.nSweepValue = n_sweep_value
+        self.measurementTimeValue = measurement_time_value
+        self.minValue = min_value
+        self.maxValue = max_value
+        self.nMeasurementsValue = n_measurements_value
+        self.fMeasurementHeightValue = f_measurement_height_value
+        self.calibrationTimeValue = calibration_time_value
+        self.next_action = None
+
         self.models = calibrationUIModel()
         self.mutex = QMutex()
         self.posReadingDict = {'N': [], 'MinPositionReading': [], 'MaxPositionReading': []}
@@ -164,9 +168,10 @@ class PiWorker(QObject):
 
 
     def initializeConnection(self):
-        self.deviceConnected = True
-        self.changeState(True)
+        self.isThreadRunning = True
         self.signals.connection_status.emit(1)
+        self.signals.z_axis_position.emit(self.getPosition())
+        self.signals.speed_value.emit(self.getSpeed())
 
     @Slot()
     def connectDevice(self):
@@ -190,15 +195,16 @@ class PiWorker(QObject):
         self.isThreadPaused = not self.isThreadPaused
         if self.piDevice:
             self.piDevice.STP('1')
-        self.signals.zAxisPosition.emit(self.getPosition())
+        self.signals.z_axis_position.emit(self.getPosition())
 
     def kill(self):
         self.isThreadKilled = True
-        self.piDevice.CloseConnection()
-        self.piDevice = None
+        if self.piDevice:
+            self.piDevice.CloseConnection()
+            self.piDevice = None
         self.signals.connection_status.emit(2)
         self.isThreadRunning = False
-        self.signals.finished.emit(True)
+        self.signals.thread_finished.emit(True)
 
     def getPosition(self):
         return self.piDevice.qPOS('1')['1']
@@ -213,9 +219,23 @@ class PiWorker(QObject):
 
         while not self.isThreadKilled:
             QApplication.processEvents()
-            if self.isThreadPaused:
-                continue
-
+            if not self.isThreadPaused:
+                if self.next_action=='move':
+                    self.move()
+                elif self.next_action=='moveUp':
+                    self.moveUp()
+                elif self.next_action=='moveDown':
+                    self.moveDown()
+                elif self.next_action=='sweep':
+                    self.sweep()
+                elif self.next_action=='calibrate':
+                    self.calibrate_axis()
+                else:
+                    continue
+            else:
+                if self.piDevice.IsMoving('1')['1'] == 1:
+                    self.piDevice.STP('1')
+                self.signals.z_axis_position.emit(self.getPosition())
 
             time.sleep(0.2)
 
@@ -233,6 +253,13 @@ class PiWorker(QObject):
     def set_step_size(self, step_size):
         self.stepSizeValue = step_size
 
+    def set_f_measurement_height(self, f_measurement_height):
+        self.fMeasurementHeightValue = f_measurement_height
+
+    @Slot(float)
+    def set_n_measurement_stops(self, n_measurements):
+        self.nMeasurementsValue = n_measurements
+
     @Slot(float)
     def set_min_sweep(self, min_value):
         self.minValue = min_value
@@ -246,8 +273,8 @@ class PiWorker(QObject):
         self.nSweepValue = n_sweep
 
     @Slot(float)
-    def set_halt_time(self, halt_time):
-        self.haltTimeValue = halt_time
+    def set_measurement_time(self, measurement_time):
+        self.measurementTimeValue = measurement_time
 
     @Slot(float)
     def set_calibration_time(self, calibration_time):
@@ -257,7 +284,6 @@ class PiWorker(QObject):
 
     @Slot(float)
     def move_to_position(self, position):
-
         try:
 
             if position is None:
@@ -268,10 +294,7 @@ class PiWorker(QObject):
             print(f"Moving at position {position} mm")
 
         except Exception as e:
-            self.signals.m_finished.emit(False)
-            return e
-        finally:
-            self.signals.m_finished.emit(True)
+            raise e
 
 
     @Slot()
@@ -286,19 +309,16 @@ class PiWorker(QObject):
         Raises:
             Exception: If an error occurs while attempting to move the z-axis.
         """
-
         try:
             self.move_to_position(self._zAxisPositionValue)
+            self.signals.m_finished.emit(2)
             while self.piDevice.IsMoving('1')['1'] == 1:
-                self.signals.zAxisPosition.emit(self.getPosition())
+                self.signals.z_axis_position.emit(self.getPosition())
+            self.signals.m_finished.emit(1)
+            self.next_action = None
         except Exception as e:
-            self.signals.m_finished.emit(False)
+            self.signals.m_finished.emit(0)
             return e
-        finally:
-            self.signals.m_finished.emit(True)
-
-
-
 
     @Slot()
     def moveUp(self):
@@ -322,29 +342,60 @@ class PiWorker(QObject):
         """
         newPosition = self.getPosition() - self.stepSizeValue
         self.mutex.lock()
+        self.signals.m_finished.emit(2)
         try:
             self.move_to_position(newPosition)
             while self.piDevice.IsMoving('1')['1'] == 1:
-                self.signals.zAxisPosition.emit(self.getPosition())
+                self.signals.z_axis_position.emit(self.getPosition())
+            self.signals.m_finished.emit(1)
+        except Exception as e:
+            self.signals.m_finished.emit(0)
+            raise e
         finally:
             self.mutex.unlock()
+            self.next_action = None
 
     @Slot()
     def moveDown(self):
+        """
+        Moves the object down by the specified step size.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+
+        """
         new_position = self.getPosition() + self.stepSizeValue
         self.mutex.lock()
+        self.signals.m_finished.emit(2)
         try:
             self.move_to_position(new_position)
             while self.piDevice.IsMoving('1')['1'] == 1:
-                self.signals.zAxisPosition.emit(self.getPosition())
+                self.signals.z_axis_position.emit(self.getPosition())
+            self.signals.m_finished.emit(1)
+        except Exception as e:
+            self.signals.m_finished.emit(0)
+            raise e
         finally:
             self.mutex.unlock()
+            self.next_action = None
 
-    @Slot()
+
+
     def pause(self):
         self.isThreadPaused = not self.isThreadPaused
-        if self.piDevice:
-            self.piDevice.STP('1')
+        # print(self.isThreadPaused)
+        # if self.piDevice.IsMoving('1')['1'] == 1:
+        #     self.piDevice.STP('1')
+        # self.signals.z_axis_position.emit(self.getPosition())
+        self.next_action = None
+
+    def calibrate_axis(self):
+        self.piDevice.FRF('1')
+        self.next_action = None
+
 
     @Slot()
     def sweep(self):
@@ -362,30 +413,62 @@ class PiWorker(QObject):
         N/A
 
         """
-        self.piDevice.VEL('1', self._speedValue)
+        try:
+            self.signals.m_finished.emit(2)
 
-        for i in range(int(self.nSweepValue)):
-            self.posReadingDict['N'].append(i + 1)
+            for i in range(int(self.nSweepValue)):
+                QApplication.processEvents()
+                self.signals.current_calibration_number.emit(i + 1)
+                self.posReadingDict['N'].append(i + 1)
 
-            # Start moving to the minimum position
-            self.move_to_position(self.minValue)
-            pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
-            sleep(self.calibrationTimeValue)
-            self.posReadingDict['MinPositionReading'].append(self.piDevice.qPOS('1')['1'])
-            sleep(self.calibrationTimeValue)
-            # Document minimum position readings
+                if not self.isThreadPaused:
+                    try:
+                    # Start moving to the minimum position
+                        if self.nMeasurementsValue and self.fMeasurementHeightValue != 0.0 or None:
 
-            # Start moving to the maximum position
-            # PILogger.info("Moving to maximum position: {}".format(self.maxValue))
-            self.move_to_position(self.maxValue)
-            pitools.waitontarget(self.piDevice, '1', postdelay=self.haltTimeValue)
-            # PILogger.info('Moved to max position: {}'.format(self.maxValue))
+                            self.move_to_position(self.fMeasurementHeightValue)
+                            pitools.waitontarget(self.piDevice, '1', postdelay=self.measurementTimeValue)
+                            self.signals.z_axis_position.emit(self.getPosition())
 
-            # Document maximum position readings
-            # PILogger.info("Getting maximum position readings")
-            sleep(self.calibrationTimeValue)
-            self.posReadingDict['MaxPositionReading'].append(self.piDevice.qPOS('1')['1'])
-            sleep(self.calibrationTimeValue)
+                            remainingHeight = abs(self.fMeasurementHeightValue - self.minValue)
 
-        self.df = pd.DataFrame.from_dict(self.posReadingDict)
-        self.df.to_csv("posReadings50.csv", index=False)
+                            while(self.getPosition() !=self.minValue):
+
+                                for j in range(1,int(self.nMeasurementsValue+1)):
+                                    moveLocation:float = self.fMeasurementHeightValue - j*(remainingHeight/self.nMeasurementsValue)
+                                    self.move_to_position(moveLocation)
+                                    pitools.waitontarget(self.piDevice, '1', postdelay=self.measurementTimeValue)
+                                    self.signals.z_axis_position.emit(self.getPosition())
+
+                            self.move_to_position(self.maxValue)
+
+                            pitools.waitontarget(self.piDevice, '1', postdelay=self.calibrationTimeValue)
+
+                        else:
+                            self.justSweep()
+
+
+                    except Exception as e:
+                        raise e
+
+                    finally:
+                        self.signals.m_finished.emit(1)
+                        self.signals.z_axis_position.emit(self.getPosition())
+                        self.signals.m_finished.emit(1)
+
+                else:
+                    self.signals.m_finished.emit(3)
+                    break
+
+        finally:
+            self.next_action = None
+
+
+
+
+    def justSweep(self):
+        self.move_to_position(self.minValue)
+        pitools.waitontarget(self.piDevice, '1', postdelay=self.measurementTimeValue)
+
+        self.move_to_position(self.maxValue)
+        pitools.waitontarget(self.piDevice, '1', postdelay=self.measurementTimeValue)

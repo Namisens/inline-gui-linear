@@ -4,7 +4,6 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow
 from Threads.piMotorThread import PiWorker
 from views.mainView import Ui_calibrationUI
-import ctypes
 
 
 class mainWindow(QMainWindow, Ui_calibrationUI):
@@ -16,102 +15,114 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
 
     def __init__(self, parent=None):
         super(mainWindow, self).__init__(parent)
-        self.threadPool = QThreadPool()
+        # self.threadPool = QThreadPool()
         self.connection_status = False
         self.ui = Ui_calibrationUI()
         self.ui.setupUi(self)
-        self.worker = PiWorker()
-        self.thread = QThread()
-        self.is_already_connected = False
+        self.worker = None
+        self.thread = None
+        self.keep_running = False
         self.setup_connections()
         self.setWindowIcon(QIcon('resources/NamisensLogo.jpg'))
 
     def setup_connections(self):
         # Connect Signals
-        self.worker.signals.connection_status.connect(self.update_progress)
+
         self.ui.connectButton.clicked.connect(self._connect)
 
         ######################################### Movement Tab #########################################
 
-        # Position Spin Box Signals
-        self.ui.zAxisSpin.valueChanged.connect(self.worker.set_z_axis_position)
-        # self.ui.zAxisSpin.valueChanged.connect(self.worker.move_to_position)
-        self.worker.signals.zAxisPosition.connect(self.set_z_axis_spin_value)
-
-        # Speed Spin Box Signals
-        self.ui.speedSpin.valueChanged.connect(self.worker.set_speed)
-
-        # Step Size Spin Box Signals
-        self.ui.stepSizeSpin.valueChanged.connect(self.worker.set_step_size)
         # self.ui.stepSizeSpin.valueChanged.connect(self.ui.zAxisSpin.setValue)
-        self.ui.stepSizeSpin.valueChanged.connect(self.updateStepSize)
+        self.ui.stepSizeSpin.valueChanged.connect(self.update_step_size)
 
         # Move Button Signals
         self.ui.Move.clicked.connect(self.move_clicked)
-        self.worker.signals.m_finished.connect(self.update_progress)
-        self.ui.Move.clicked.connect(self.worker.move)
 
+    def setup_connections_worker(self):
+
+        ########### Worker Signals ###############################################################
+        self.worker.signals.connection_status.connect(self._update_connection_progress)
+        # Position Spin Box Signals
+        self.ui.zAxisSpin.valueChanged.connect(self.worker.set_z_axis_position)
+        self.worker.signals.z_axis_position.connect(self._update_z_axis_position)
+        # self.ui.zAxisSpin.valueChanged.connect(self.worker.move_to_position)
+
+        # Speed Spin Box Signals
+        self.ui.speedSpin.valueChanged.connect(self.worker.set_speed)
+        self.worker.signals.speed_value.connect(self.ui.speedSpin.setValue)
+        # Step Size Spin Box Signals
+        self.ui.stepSizeSpin.valueChanged.connect(self.worker.set_step_size)
+
+        self.ui.Move.clicked.connect(self.move_clicked)
         # Up Button Signals
         # self.ui.Up.clicked.connect(self.up_clicked)
-        self.ui.Up.clicked.connect(self.worker.moveUp)
-
-        # Down Button Signals
-        # self.ui.Down.clicked.connect(self.down_clicked)
-        self.ui.Down.clicked.connect(self.worker.moveDown)
-
+        self.ui.Up.clicked.connect(self.up_clicked)
         # Pause Button Signals
         self.ui.pausePushButton_2.clicked.connect(self.worker.pause)
-
         # Finished Movement Signal, called after every movement
         self.worker.signals.m_finished.connect(self.update_movement_progress)
+        # Down Button Signals
+        # self.ui.Down.clicked.connect(self.down_clicked)
+        self.ui.Down.clicked.connect(self.down_clicked)
 
         ################## Calibration Tab########################################################
-        self.ui.sweepPushButton.clicked.connect(self.worker.sweep)
+        self.ui.sweepPushButton.clicked.connect(self.on_sweep_clicked)
 
         # Set Calibration Parameters
         self.ui.nSweepSpin.valueChanged.connect(self.worker.set_n_sweep)
-        self.ui.measuringTImeSpin.valueChanged.connect(self.worker.set_halt_time)
+        self.ui.measuringTImeSpin.valueChanged.connect(self.worker.set_measurement_time)
         self.ui.calibrationTimeSpin.valueChanged.connect(self.worker.set_calibration_time)
         self.ui.maxSweepSpin.valueChanged.connect(self.worker.set_max_sweep)
         self.ui.minSweepSpin.valueChanged.connect(self.worker.set_min_sweep)
+        self.ui.fMeasurementHeightSpinValue.valueChanged.connect(self.worker.set_f_measurement_height)
+        self.ui.nMeasurementStopSpinValue.valueChanged.connect(self.worker.set_n_measurement_stops)
+        self.ui.referenceAxisPushButton.clicked.connect(self.calibration_axis_clicked)
+        # Update current calibration number
+        self.worker.signals.current_calibration_number.connect(self.update_calibration_number)
+
+    def calibration_axis_clicked(self):
+        self.worker.next_action = 'calibrate'
+    def up_clicked(self):
+        self.worker.next_action = 'moveUp'
+
+    def down_clicked(self):
+        self.worker.next_action = 'moveDown'
+
+    def move_clicked(self):
+        self.ui.pausePushButton_2.setEnabled(True)
+        self.worker.next_action = 'move'
+
+    def on_sweep_clicked(self):
+        self.ui.pausePushButton_2.setEnabled(True)
+        self.worker.next_action = 'sweep'
+
+    def update_calibration_number(self, value):
+        self.ui.sweepNumberLCD.display(value)
 
     def update_movement_progress(self, value):
         if value == 1:
             self.ui.statusbar.showMessage("Finished Moving", 2000)
+            self.ui.pausePushButton_2.setEnabled(False)
         elif value == 0:
             self.ui.statusbar.showMessage("Check motor connection", 2000)
+        elif value == 2:
+            self.ui.statusbar.showMessage("Moving", 2000)
+        elif value == 3:
+            self.ui.statusbar.showMessage("Paused", 2000)
+            self.ui.pausePushButton_2.setText('Resume')
+            self.ui.pausePushButton_2.setEnabled(True)
 
-    def updateStepSize(self):
+    def update_step_size(self):
         stepSize = self.ui.stepSizeSpin.value()
         self.ui.zAxisSpin.setSingleStep(stepSize)
 
-    def move_clicked(self):
-        self.ui.pausePushButton_2.setEnabled(True)
-        value = self.ui.zAxisSpin.value()
-        self.ui.zAxisSpin.emit(value)
 
-    def update_movement(self, value):
-        self.ui.pausePushButton_2.setEnabled(False)
-        self.statusBar().showMessage(f"Moved to {value}", 2000)
-
-    def set_z_axis_spin_value(self, value):
-        self.ui.zAxisSpin.setValue(value)
-
-    # @Slot()
-    # def up_clicked(self):
-    #     self.ui.zAxisSpin.setValue(self.ui.zAxisSpin.value() - self.ui.stepSizeSpin.value())
-    #     self.statusBar().showMessage("Moving to {}".format(self.ui.zAxisSpin.value()))
-    #
-    # @Slot()
-    # def down_clicked(self):
-    #     self.ui.zAxisSpin.setValue(self.ui.zAxisSpin.value() + self.ui.stepSizeSpin.value())
-    #     self.statusBar().showMessage("Moving to {}".format(self.ui.zAxisSpin.value()), 2000)
 
     @Slot(float)
-    def update_z_axis_position(self, value):
+    def _update_z_axis_position(self, value):
         return self.ui.zAxisSpin.setValue(value)
 
-    def update_progress(self, value):
+    def _update_connection_progress(self, value):
         if value == 1:
 
             # Update Connection Button Text
@@ -119,7 +130,7 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
             self.ui.connectButton.setText('Disconnect')
 
             # Update UI Connection Status
-            self.toggleButtons(True)
+            self._toggle_buttons(True)
             print("Thread status from update_progress {}".format(self.thread.isRunning()))
 
             # Get Motor Position and Speed Values from the controller
@@ -128,7 +139,7 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
 
         elif value == 2:
             self.ui.statusbar.showMessage("Disconnected", 5000)
-            self.toggleButtons(False)
+            self._toggle_buttons(False)
             self.ui.statusbar.showMessage(f"Disconnected")
             self.ui.connectButton.setText('Connect')
 
@@ -139,27 +150,45 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
     @Slot()
     def _connect(self):
         if self.connection_status:
-            self.worker.kill()
-            print(self.thread.isFinished(), self.thread.isRunning())
-
+            self.worker.isThreadKilled = True
+            print(self.thread.isRunning())
+            self._detach_worker()
         else:
-            self.attach_worker()
-            print(self.thread.isFinished(), self.thread.isRunning())
+            self._attach_worker()
 
-    def attach_worker(self):
-        if not self.is_already_connected:
+    def _attach_worker(self):
+        if self.thread is None:
+            self.thread = QThread()
+            self.worker = PiWorker(n_sweep_value=self.ui.nSweepSpin.value(),
+                                   speed_value=self.ui.speedSpin.value(),
+                                   step_size=self.ui.stepSizeSpin.value(),
+                                   measurement_time_value=self.ui.measuringTImeSpin.value(),
+                                   calibration_time_value=self.ui.calibrationTimeSpin.value(),
+                                   max_value=self.ui.maxSweepSpin.value(),
+                                   min_value=self.ui.minSweepSpin.value(),
+                                   f_measurement_height_value=self.ui.fMeasurementHeightSpinValue.value(),
+                                   n_measurements_value=self.ui.nMeasurementStopSpinValue.value())
+
+            self.setup_connections_worker()
             self.worker.moveToThread(self.thread)
             self.thread.started.connect(self.worker.run)
-            self.worker.signals.finished.connect(self.worker.deleteLater)
-            self.thread.finished.connect(self.thread.deleteLater)
-            self.worker.signals.finished.connect(self.thread.quit)
+            self.worker.signals.thread_finished.connect(self._detach_worker)
             self.thread.start()
-            self.is_already_connected = True
-        else:
+            self.connection_status = True
 
-            self.thread.start()
+    @Slot()
+    def _detach_worker(self):
+        if self.worker is not None:
+            self.worker.kill()
+            self.worker = None
 
-    def toggleButtons(self, state):
+        if self.thread is not None and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait()
+            self.thread = None
+            self.connection_status = False
+
+    def _toggle_buttons(self, state):
 
         # Update Connection Flag
         self.connection_status = state
@@ -185,7 +214,6 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
 def main():
     app = QApplication(sys.argv)
     window = mainWindow()
-
     window.show()
     sys.exit(app.exec())
 
