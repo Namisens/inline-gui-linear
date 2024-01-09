@@ -42,6 +42,7 @@ class WorkerSignals(QObject):
     thread_finished = Signal(bool)
     m_finished = Signal(int)
     current_calibration_number = Signal(int)
+    log_message = Signal(str)
 
 
 class PiWorker(QObject):
@@ -291,7 +292,7 @@ class PiWorker(QObject):
 
             self.piDevice.VEL('1', self._speedValue)
             self.piDevice.MOV('1', position)
-            print(f"Moving at position {position} mm")
+            self.signals.log_message.emit(f"Moving at position {position} mm")
 
         except Exception as e:
             raise e
@@ -314,11 +315,14 @@ class PiWorker(QObject):
             self.signals.m_finished.emit(2)
             while self.piDevice.IsMoving('1')['1'] == 1:
                 self.signals.z_axis_position.emit(self.getPosition())
-            self.signals.m_finished.emit(1)
-            self.next_action = None
+
         except Exception as e:
             self.signals.m_finished.emit(0)
             return e
+        finally:
+            self.signals.m_finished.emit(1)
+            self.next_action = None
+            self.signals.log_message.emit(f"Finished moving to position {self._zAxisPositionValue} mm")
 
     @Slot()
     def moveUp(self):
@@ -347,13 +351,16 @@ class PiWorker(QObject):
             self.move_to_position(newPosition)
             while self.piDevice.IsMoving('1')['1'] == 1:
                 self.signals.z_axis_position.emit(self.getPosition())
-            self.signals.m_finished.emit(1)
+
         except Exception as e:
             self.signals.m_finished.emit(0)
             raise e
         finally:
+            self.signals.m_finished.emit(1)
             self.mutex.unlock()
+            self.signals.log_message.emit(f"Finished moving to position {newPosition} mm")
             self.next_action = None
+
 
     @Slot()
     def moveDown(self):
@@ -374,13 +381,15 @@ class PiWorker(QObject):
             self.move_to_position(new_position)
             while self.piDevice.IsMoving('1')['1'] == 1:
                 self.signals.z_axis_position.emit(self.getPosition())
-            self.signals.m_finished.emit(1)
+
         except Exception as e:
             self.signals.m_finished.emit(0)
             raise e
         finally:
+            self.signals.m_finished.emit(1)
             self.mutex.unlock()
             self.next_action = None
+            self.signals.log_message.emit(f"Finished moving to position {new_position} mm")
 
 
 
@@ -419,6 +428,7 @@ class PiWorker(QObject):
             for i in range(int(self.nSweepValue)):
                 QApplication.processEvents()
                 self.signals.current_calibration_number.emit(i + 1)
+                self.signals.log_message.emit(f"\nStarting sweep number {i + 1}")
                 self.posReadingDict['N'].append(i + 1)
 
                 if not self.isThreadPaused:
@@ -428,6 +438,7 @@ class PiWorker(QObject):
 
                             self.move_to_position(self.fMeasurementHeightValue)
                             pitools.waitontarget(self.piDevice, '1', postdelay=self.measurementTimeValue)
+                            self.signals.log_message.emit(f"Finished moving to {self.fMeasurementHeightValue} mm and measuring")
                             self.signals.z_axis_position.emit(self.getPosition())
 
                             remainingHeight = abs(self.fMeasurementHeightValue - self.minValue)
@@ -438,11 +449,12 @@ class PiWorker(QObject):
                                     moveLocation:float = self.fMeasurementHeightValue - j*(remainingHeight/self.nMeasurementsValue)
                                     self.move_to_position(moveLocation)
                                     pitools.waitontarget(self.piDevice, '1', postdelay=self.measurementTimeValue)
+                                    self.signals.log_message.emit(f"Finished moving to {moveLocation} mm and measuring")
                                     self.signals.z_axis_position.emit(self.getPosition())
 
                             self.move_to_position(self.maxValue)
-
                             pitools.waitontarget(self.piDevice, '1', postdelay=self.calibrationTimeValue)
+                            self.signals.log_message.emit(f"Finished moving to {self.maxValue} mm and measuring")
 
                         else:
                             self.justSweep()
@@ -462,6 +474,8 @@ class PiWorker(QObject):
 
         finally:
             self.next_action = None
+            self.signals.log_message.emit(f"Finished sweep motion for {self.nSweepValue} sweeps "
+                                          f"between {self.minValue} mm and {self.maxValue} mm")
 
 
 

@@ -16,6 +16,7 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
     def __init__(self, parent=None):
         super(mainWindow, self).__init__(parent)
         # self.threadPool = QThreadPool()
+        self.app = QApplication.instance()
         self.connection_status = False
         self.ui = Ui_calibrationUI()
         self.ui.setupUi(self)
@@ -24,11 +25,14 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
         self.keep_running = False
         self.setup_connections()
         self.setWindowIcon(QIcon('resources/NamisensLogo.jpg'))
+        self.ui.LogBrowser.appendPlainText("Welcome to the Namisens Calibration Tool")
 
     def setup_connections(self):
         # Connect Signals
 
         self.ui.connectButton.clicked.connect(self._connect)
+        self.ui.actionExit.triggered.connect(self.app.quit)
+
 
         ######################################### Movement Tab #########################################
 
@@ -40,6 +44,7 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
 
     def setup_connections_worker(self):
 
+        self.worker.signals.log_message.connect(self.update_logger)
         ########### Worker Signals ###############################################################
         self.worker.signals.connection_status.connect(self._update_connection_progress)
         # Position Spin Box Signals
@@ -79,6 +84,10 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
         self.ui.referenceAxisPushButton.clicked.connect(self.calibration_axis_clicked)
         # Update current calibration number
         self.worker.signals.current_calibration_number.connect(self.update_calibration_number)
+
+    @Slot(str)
+    def update_logger(self, value):
+        self.ui.LogBrowser.appendPlainText(value)
 
     def calibration_axis_clicked(self):
         self.worker.next_action = 'calibrate'
@@ -129,6 +138,8 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
             self.ui.statusbar.showMessage("Connected", 5000)
             self.ui.connectButton.setText('Disconnect')
 
+            self.ui.LogBrowser.appendPlainText("\nConnected to Motor Controller")
+
             # Update UI Connection Status
             self._toggle_buttons(True)
             print("Thread status from update_progress {}".format(self.thread.isRunning()))
@@ -138,10 +149,12 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
             self.ui.speedSpin.setValue(float(self.worker.getSpeed()))
 
         elif value == 2:
-            self.ui.statusbar.showMessage("Disconnected", 5000)
-            self._toggle_buttons(False)
-            self.ui.statusbar.showMessage(f"Disconnected")
-            self.ui.connectButton.setText('Connect')
+            try:
+                self.ui.statusbar.showMessage("Disconnected", 5000)
+                self._toggle_buttons(False)
+            finally:
+                self.ui.statusbar.showMessage(f"Disconnected")
+                self.ui.connectButton.setText('Connect')
 
         else:
             self.ui.statusbar.showMessage(f"Unable to find any controllers. "
@@ -149,6 +162,7 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
 
     @Slot()
     def _connect(self):
+        self.ui.LogBrowser.appendPlainText("\nConnecting to Motor Controller")
         if self.connection_status:
             self.worker.isThreadKilled = True
             print(self.thread.isRunning())
@@ -183,10 +197,13 @@ class mainWindow(QMainWindow, Ui_calibrationUI):
             self.worker = None
 
         if self.thread is not None and self.thread.isRunning():
-            self.thread.quit()
-            self.thread.wait()
-            self.thread = None
-            self.connection_status = False
+            try:
+                self.thread.quit()
+                self.thread.wait()
+                self.thread = None
+                self.connection_status = False
+            finally:
+                self.ui.LogBrowser.appendPlainText("Disconnected from Motor Controller")
 
     def _toggle_buttons(self, state):
 
