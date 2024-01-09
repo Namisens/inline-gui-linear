@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>473</width>
-    <height>677</height>
+    <width>514</width>
+    <height>796</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -506,18 +506,79 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="mouseTracking">
+                 <bool>true</bool>
+                </property>
+                <property name="tabletTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>Enter number  of stops for measurements during calibration sweep</string>
+                </property>
                 <property name="text">
                  <string>No. of Measurement Stop</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignJustify|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="nMeasurementStopSpinValue">
+               <widget class="QSpinBox" name="nMeasurementStopSpinValue">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>53</horstretch>
+                  <verstretch>22</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>53</width>
+                  <height>22</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="nMeasurementUnitLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>int</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="0" column="2">
+             <layout class="QHBoxLayout" name="fMeasurementHLayout">
+              <item>
+               <widget class="QLabel" name="fMeasurementHeightLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>First Measurement Height</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="fMeasurementHeightSpinValue">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -525,7 +586,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="nMeasurementUnitLabel">
+               <widget class="QLabel" name="fMeasurementHeightUnitLabel">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -533,7 +594,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>int</string>
+                 <string>mm</string>
                 </property>
                </widget>
               </item>
@@ -550,7 +611,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Min Sweep Value</string>
+                 <string>Min Sweep Height</string>
                 </property>
                </widget>
               </item>
@@ -591,48 +652,19 @@
               </item>
              </layout>
             </item>
-            <item row="0" column="2">
-             <layout class="QHBoxLayout" name="fMeasurementHLayout">
-              <item>
-               <widget class="QLabel" name="fMeasurementHeightLabel">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>First Measurement Height</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="fMeasurementHeightSpinValue">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="fMeasurementHeightUnitLabel">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>mm</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+            <item row="1" column="1">
+             <widget class="Line" name="line_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="Line" name="line_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+             </widget>
             </item>
             <item row="1" column="0">
              <layout class="QHBoxLayout" name="minSweepHlayout">
@@ -645,7 +677,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Max Sweep Value</string>
+                 <string>Max Sweep Height</string>
                 </property>
                 <property name="scaledContents">
                  <bool>false</bool>
@@ -677,7 +709,7 @@
               <item>
                <widget class="QLabel" name="minSweepDistanceUnitLabel">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -688,20 +720,6 @@
                </widget>
               </item>
              </layout>
-            </item>
-            <item row="0" column="1">
-             <widget class="Line" name="line_3">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="Line" name="line_4">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
             </item>
            </layout>
           </item>
@@ -804,6 +822,9 @@
       <property name="text">
        <string>View Log</string>
       </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item>
@@ -814,7 +835,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QScrollArea" name="scrollArea">
+     <widget class="QScrollArea" name="LogScroll">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -826,10 +847,15 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>453</width>
-         <height>69</height>
+         <width>494</width>
+         <height>163</height>
         </rect>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QPlainTextEdit" name="LogBrowser"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -840,7 +866,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>473</width>
+     <width>514</width>
      <height>22</height>
     </rect>
    </property>
@@ -848,8 +874,7 @@
     <property name="title">
      <string>Menu</string>
     </property>
-    <addaction name="actionReference_Axis"/>
-    <addaction name="actionReboot_System"/>
+    <addaction name="actionExit"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
@@ -862,6 +887,14 @@
   <action name="actionReboot_System">
    <property name="text">
     <string>Reboot System</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="icon">
+    <iconset theme="application-exit"/>
+   </property>
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>
